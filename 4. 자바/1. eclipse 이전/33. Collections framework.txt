@@ -1,0 +1,107 @@
+1. 배열은 연관된 데이터를 관리하기 위한 수단이었다. 그런데 배열에는 몇가지 불편한 점이 있었는데 그 중의 하나가 한번 정해진 배열의 크기를 변경할 수 없다는 점이다.
+ 이러한 불편함을 컬렉션즈 프래임워크를 사용하면 줄어든다.
+
+ 배열은 그 크기를 한번 지정하면 크기보다 많은 수의 값을 저장할 수 없다.(사진 1번)
+ 하지만 ArrayList는 크기를 미리 지정하지 않기 때문에 얼마든지 많은 수의 값을 저장할 수 있다.
+
+ 배열의 경우에는 String[] arrayObj = new String[2];와 같은 방식으로 지정하지만 ArrayList는 ArrayList al = new ArrayList();와 같이 지정한다.
+ 또한, 배열은 arrayObj.length처럼 length로 배열의 길이를 불러오지만, ArrayList는 al.size()로 리스트의 길이를 불러온다.
+ 데이터를 불러올때도 마찬가리조 배열은 arrayObj[i]로 불러오지만, ArrayList는 al.get(i)으로 불러온다.
+
+ 대신에 ArrayList는 사진 2번과 같이 문자열을 add로 추가해도 String으로 가져올 수 없다.
+ 그 이유는 ArrayList에 어떠한 데이터 타입을 add 할 수 있기 때문에 Object 타입으로 저장되어 있기 때문이다.
+ 이것을 제대로 사용하기 위해서는 al.get(i)를 형변환하기위해 앞에 (String)을 사용하면 된다.
+
+ 이렇게 인자를 불러올 때마다 형변환을 하는 방법이 아닌, 제네릭을 사용하는 방법도 있다.(사진 3번)
+
+2. 그럼 이제부터 컬렉션즈 프래임워크가 무엇인가 본격적으로 알아보자. 컬렉션즈 프래임워크라는 것은 다른 말로는 컨테이너라고도 부른다.
+ 즉, 값을 담는 그릇이라는 의미이다. 그런데 그 값의 성격에 따라서 컨테이너의 성격이 조금씩 달라진다. 
+ 자바에서는 다양한 상황에서 사용할 수 있는 다양한 컨테이너를 제공하는데 이것을 컬렉션즈 프래임워크라고 부른다. 
+ 
+ ArrayList는 그중의 하나다.
+
+ 사진 4번은 컬렉션즈 프래임워크의 구성을 보여준다. Collection과 Map이라는 최상위 카테고리가 있고, 그 아래에 다양한 컬렉션들이 존재한다.
+ 여기서 set을 잠시 설명하자면 set은 list와 달리 중복되는 내용을 포함하지 않는 것이라고 말 할 수 있겠다.(만약, 컨테이너 안에 1이 들어있다면, 다시 한번 1을 추가해도 입력되지 않는다.)
+ map의 경우는 key, value 형식의 데이터를 저장하고 싶을 때 사용되는 방식이다.
+ 또한, list의 경우는 저장한 순서대로 데이터를 가지고 있지만, set의 경우에는 저장된 순서를 보장하지 않는다.
+
+ 
+3. 구체적인 컬렉션즈 프래임워크 클래스들을 살펴보자.(사진 5번)
+
+ ArrayList를 찾아보자. Collection-List에 속해있다. ArrayList는 LIst라는 성격으로 분류되고 있는 것이다. 
+ List는 인터페이스이다. 그리고 List 하위의 클래스들은 모두 List 인터페이스를 구현하기 때문에 모두 같은 API를 가지고 있다. 
+ 클래스의 취지에 따라서 구현방법과 동작방법은 다르지만 공통의 조작방법을 가지고 있는 것이다.
+
+ 사진 6번은 hash set을 사용한 예제이다.
+    HashSet hs를 먼저 살펴보면 제네릭(<Integer>)를 사용하여 데이터 형식을 Integer로 넣어주었고, .add를 이용해 one, two, two, three, three, five를 입력했다.
+    hs라는 인스턴스에 one, two, two, three, three, five를 넣었으니 hs라는 컨테이너에는 one, two, three, five가 담긴 상태이다.
+    이것을 출력해보면 one, two, three, five가 나오며 중복된 데이터는 사라진 것을 확인할 수 있다.
+
+    다음으로 ArrayList<String> al = new ArrayList<String>(); 부분을 살펴보면 hashset과 같이 one, two, two, three, three, five를 입력했다.
+    이 경우에는 중복이 허락된 one, two, two, three, three, five가 출력된 것을 확인할 수 있다.
+
+4. 집합은 영어로 set이라 한다. 즉, 지금 배우고 있는 hashset도 집합이라는 뜻이다.
+ 다시 말해, java에서 set을 사용할 수 있듯이 집합에 대한 수식을 사용할 수 있다는 뜻이다.
+
+ 사진 7번을 보면 containsAll을 사용한 것을 볼 수 있다. 여기서 A.containsAll(B)이라는 뜻은 A 집합이 B 집합의 모든 원소를 포함하고 있는가의 명령어이다.(B는 A의 부분집합이 아니다./true, false를 반환한다.)
+
+ 사진 8번을 보면 A.addAll(B);을 사용했는데 addAll은 합집합을 나타낸다.
+
+ 사진 9번을 보면 A.retainAll(B);을 사용했는데 retainAll은 교집합을 나타낸다.
+
+ 사진 10번을 보면 A.removeAll(B);을 사용했는데 removeAll은 차집합을 나타낸다.
+
+5. Collection의 구성요소는 (https://prashantgaurav1.files.wordpress.com/2013/12/java-util-collection.gif)을 들어가면 더욱 자세히 볼 수 있다.(진한 파랑색은 class를 옅은 파랑색은 interface를 나타낸다.)
+
+6. 위 링크에서 collection(제일 상위에 있다.)) 부분을 자세히 보면(사진 11번) add/remove라는 메소드를 가지고 있다.
+ 여기서 하위 인터페이스인 set(사진 12번)과 list(사진 13번)를 보면 set의 경우에는 아무런 내용이 없기 때문에 collection과 동일한 API를 가지고 있다.
+ 반면에 list의 경우는 get과 add 등 set 카테고리에 가지고 있는 않는 내용들이 있다.
+
+ 여기서 list의 get(int index)를 살펴보면 list는 저장되어 있는 데이터가 위치 정보(index)를 가지고 있다는 말이다.(set은 순서를 가지고 있지 않기 때문에 get과 같은 순서 기반의 메소드를 가지고 있지 않다.)
+
+7. 사진 11번의 collection을 보면 지금까지 코드에서 출력 부분에 적혀있던 iterator(반복)가 있는 것을 확인할 수 있다.
+ 구글에서 java iterator api를 검색해보면(사진 14번) hasNext(), 	next()가 있는 것을 볼 수 있다.
+
+ 다시 이전의 예시 코드(사진 6번)로 돌아가보면 Iterator hi = A.iterator();로 데이터 타입 Iterator를 사용하여 인스턴스를 만든 것을 확인할 수 있다.
+ 이렇게 hi에 A.iterator()를 저장하면 가상의 컨테이너 hi 안에 one, two, two, three, three, five가 들어가게 된다.
+ 현재 hi라는 가상 컨테이너 안에 값이 있기 때문에 hi.hasNext()는 true를 반환하게 되고 while 구문을 돌릴 수 있게 된다.
+
+ 마지막으로 적혀있는 hi.next()는 가상 컨테이너 hi 안에 들어있는 원소를 하나 불러오고 불러오게된 원소는 가상의 컨테이너 안에서 사라진다.(hi 가상 컨테이너(iterator) 안에서만 사라질 뿐, 원본인 A 집합에서 사라지는 것이 아니다.)
+ 이런 과정이 while 구문으로 진행되고 hi iterator의 마지막 원소가 사라지게 되면 false를 반환하여 while 구문이 멈추게 된다.
+ (이러한 과정은 HashSet만 가능한 것이 아니라 Collection, ArrayList도 사용 가능하다.)
+
+8. map은 key와 value를 갖는 값으로 python의 딕셔너리라고 할 수 있다.
+ 이때, key는 중복을 허용하지 않고, value는 중복을 허용한다.
+ 대신에 "one"이라는 key값이 있고, "one"의 value가 1로 저장되어 있을 때, 새롭게 "one"의 값을 200으로 넣을 경우, 기존에 존재했던 key값인 "one"의 value값인 1이 지워지고 200으로 대체되는 것이다.
+
+10. HashMap의 사용은 사진 15번을 보면 알 수 있다.
+
+ HashMap<String, Integer> a = new HashMap<String, Integer>();을 사용하여 인스턴스를 만드는데 이전에 보았던 HashSet과 ArrayList와 달리(HashSet과 ArrayList는 value값만 가진다.)
+ key와 value를 가지기 때문에 <String, Integer>와 같이 복수의 제네릭을 가진다.
+ 또한, HashMap은 .app가 아닌 .put을 데이터를 추가하며, ket에 저장되어 있는 value를 가져오는데는 .get("key값")을 사용한다.
+
+11. 다음으로 iteratorUsingForEach(a);이 사용되는 것을 보면, static void iteratorUsingForEach(HashMap map)으로 정의하고, map.entrySet();으로 불러온다.
+ entrySet은 Set 데이터 타입에 담길 수 있고, Set에 들어있는 데이터 하나하나가 Map.Entry<String, Integer>에 대응된다.
+
+ 여기서 entries는 콜론(:)의 뒤쪽에 위치하게 되고, 이것은 for 구문으로 인해 entries 안에 들어있는 데이터 하나하나가 entry에 담기게 된다.
+ 이렇게 되면 entry.getKey()와 entry.getValue()를 사용하여 key와 value값을 가져올 수 있게 된다.
+
+ 다시 말해, Map 자체에서 이 값을 가져올 수 없기 때문에 Set을 만들어 Set에 들어있는 데이터 타입인 Map.Entry를 가지고 각각의 값에 대응되는 key와 value값을 꺼내는 것이다.
+
+12. iteratorUsingIterator(a);이 사용되는 것을 보면 static void iteratorUsingIterator(HashMap map)으로 정의하고 map.entrySet();으로 불러온다.(Map에 대응되는 Set 만들기)
+ 이렇게 만든 entries는 set 이므로 iterator를 이용하여 반복할 수 있는 반복자를 얻을 수 있게된다.(이것을 i에 담음)
+
+ 여기까지 오면 위와 같이 while 구문으로 돌려 Map.Entry<String, Integer> entry = i.next();처럼 Map.Entry라는 데이터 타입을 가지게 되고 Map.Entry는 getKey와 getValue라는 메소드를 가지고 있기 때문에 
+ 원하는 값을 출력할 수 있게 된다.
+
+13. 컬렉션을 사용하는 이유 중의 하나는 정렬과 같은 데이터와 관련된 작업을 하기 위해서다. 
+ 사진 16번을 보면 Collections.sort(computers);라는 부분이 있는데 위에서 계속 보았던 Collection이라 하는 interface가 아닌 Collections라 하는 class의 사용임을 주의해야한다.
+ 이 Collections class는 정렬과 같은 데이터와 관련된 작업들을 처리할 수 있도록 도와준다.
+ Collections class 안의 메소드는 전부 static이기 때문에 인스턴스를 만들 필요없이 바로 사용할 수 있다.
+
+ 여기서 sort는 정렬을 도와주는 메소드로 자세한 내용은 ctrl+좌클릭으로 알 수 있다.(사진 17번)
+ public static <T extends Comparable<? super T>> void sort(List<T> list) 코드를 보면 sort(List<T> list)에서 sort는 리스트 형식만 정렬이 가능하다는 사실을 알려준다.
+ 여기서 제네릭 <T>는 <T extends Comparable<? super T>에서 받아오게 되고 여기서 T는 Comparable이라는 인터페이스를 extends 해야한다.
+ 때문에 사진 16번에서 class Computer implements Comparable와 같이 사용되었다.
+
+ 또한, Computer class의 public int compareTo(Object o)에서 return하는 값은 a.compareTo(b)일 경우, a.serial - b.serial이 된다.

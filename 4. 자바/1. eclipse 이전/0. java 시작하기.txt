@@ -1,0 +1,55 @@
+Java SE = Java Platform, Standard Edition의 약자로 자바의 표준안이다. 자바가 어떤 문법적인 구성가지는지 같은 것들의 정의하고있다.
+
+JDK = Java Development Kit의 약자로 Java SE에 따라서 만들어진 소프트웨어이다. (개발자를 위한것)
+
+JRE = Java Runtime Environment의 약자로 자바가 실제로 동작하는데 필요한 JVM, 라이브러리, 각종파일들이 포함되어있다. (일반인을 위한것)
+
+JVM = Java Virtual Machine의 약자로 자바가 실제로 구동하는 환경이다.
+
+
+컴파일이란? : 사람이 적은 코드를 컴퓨터가 이해할 수 있는 byte code로 전환해주는 것으로 이 작업을 하는 소프트웨어를 컴파일러라고 부른다. 자바의 컴파일러는 javac라는 이름을 가지고 있다.
+    사용방법 : javac Helloworld.java (여기서 Helloworld.java는 파일의 이름)
+
+위의 명령을 실행하면 같은 디렉터리에 helloworld.class라는 이름의 파일이 생성된다. 바로 이 파일이 컴파일된 파일이고, 쉽게 말해서 실행파일이라고 할 수 있다. 
+그런데 이 파일은 파일 이름만으로 실행 할 수 있는 것은 아니고, 컴파일된 파일을 실행시켜주는 프로그램을 이용해야 한다. 이 작업을 하는 프로그램을 런처(launcher)라고 하고 java Helloworld와 같이 실행한다.
+
+정리하자면 code 작성 - (javac로 컴파일) -> Byte code로 변환 - (java로 실행) -> vm(Virtual Machine)으로 보여줌.
+
+
+1. java 사진/eclipse 이전 의 3번 사진을 보면 txt 파일로 간단한 자바 코드를 작성하고(4번 사진) cmd창에서 javac Helloworld.java를 실행 후, dir로 확인한 결과 Helloworld.class 파일이 생성된 것을 확인할 수 있다.
+ (여기서 Helloworld.class는 Virtual Machine이 이해할 수 있는 Byte code로 이뤄져 있는 class 파일이다.)
+
+2. Helloworld.class가 만들어진 것을 확인했으면 cmd창에 java Helloworld 를 입력하면 작성했던 코드가 작동하는 것을 확인할 수 있다.(사진 5번.)
+
+3. 만약, txt 파일의 내용을 변경하고 (Hello World가 아닌 World Hellow로) java Helloworld를 실행한다 하여도 cmd창에는 변경되지 않는 것을 확인할 수 있다.(Virtual Machine은 class 파일을 읽는 것이지 java 파일을 읽어올 수 없다.)
+
+ <-- 여기서부터 사진은 java 시작하기 -->
+
+4. eclipse IDE 사용하기 : 사진 6번을 설치
+ project explorer(사진 7번) : 프로젝트 관리.
+ outline(사진 8번) : 소스 코드의 여러가지 문법적인 요소들을 시각적으로 표시.
+
+ debug(사진 9번) : window - perspective - opne perspective - debug에 들어가면 오류 해결에 필요한 창을 한 번에 볼 수 있음.
+
+5. 새 파일 만들기에 들어가 java project를 선택하면 파일의 이름과 경로(location)을 설정할 수 있다.
+
+6. eclipse에서 새 파일을 만들면 사진 11번처럼 bin, src 파일이 생성된다.
+ bin : binary의 약자로, .class로 끝나는 실행파일(어플리케이션)이 저장되는 곳.
+ src : source의 약자로, .java로 끝나는 소스파일이 저장되는 곳.
+
+7. 파일 이름이 중복되어 오류가 발생하는 것을 방지하기 위해 패키지를 설정.(eclipse에서 만들 파일에 우클릭)
+ 패키지 : 이름이 동일한 실행파일이 존재할 경우, 분리해주는 역할을 함. 보통은 중복되지 않도록 도메인 주소로 많이 설정한다고 한다.
+    12-2번 사진처럼 패키지의 이름을 설정하면 내가 설정했던 이름의 패키지가 만들어진 것을 확인할 수 있다.(사진 12-3번)
+
+8. 위에서 만든 패키지 파일에서 우클릭 - new - class를 선택하면 새로운 클래스를 만들 수 있는 창이 뜬다.(사진 13번)
+
+9. 사진 14번처럼 클래스가 만들어질 때, 선택한 소스 폴더와 패키지가 설정된 것을 확인할 수 있고, 클래스 명도 정할 수 있다.
+
+10. 클래스가 만들어지면 사진 15번과 같이 패키지 아래 클래스 파일이 생성되고, 내가 정했던 class의 이름으로 코드가 작성되어 있는 것을 확인할 수 있다. 
+
+11. 사진 16-1, 16-2번을 보면 우리가 만들었던 패키지명의 '.'을 기준으로 파일이 생성되어 있음을 확인할 수 있다.
+
+12. 패키지 아래 class에 'Hello World'를 출력하는 코드를 넣고 실행을 시키면 아래 console창에서 확인할 수 있다.(사진 17번)
+ (eclipse를 사용하면 cmd창에서 'Hello World'를 'World Hello'로 수정한 뒤 java로 실행했을 때, 변경되지 않았던 것과 달리 변경된 상태로 출력되는 모습을 확인할 수 있다.)
+
+ 여기서 오류(사진 오류 1번)가 뜨는 경우가 생기는데 이것은 패키지의 경로에 같은 이름을 가진 폴더가 내부에 존재하면 생기는 오류이다.

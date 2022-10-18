@@ -1,0 +1,26 @@
+1. System.out.println()에 숫자열(계산식)을 넣으면 계산식의 결과를 console에서 확인할 수 있다.
+ 대신에 '자'와 같은 문자는 ''으로 묶어주어야 하고, "자바시작"와 같은 문자열은 ""으로 묶어주어야 한다. 여기서 중요한 점은 '자바시작'처럼 문자열을 ''으로 묶어주면 오류가 뜬다.
+
+2. 만약, eclipse에서 utf-8 인코딩이 설정되어 있지 않으면 1. 숫자, 문자열(사진) 파일의 1번 사진처럼 한글이 깨져서 나오는 현상을 확인할 수 있다.
+ 이와 같은 경우에는 window - preferences (사진 1-2번)에 들어가서 General - Content Types - Java Class File의 Default encoding에 UTF-8을 입력하고 Udata를 누른다.(사진 2-3번))
+ 다음으로 General - Workspace에서 Other이 체크되어있는지 확인하고 적용을 시킨다.(사진 2-4번)
+ 마지막으로 General - Editers - Text Editors에서 Encoding 부분에 Default(UTF-8)에 체크가 되어있는지 확인하고 적용시킨다.(사진 2-5번)
+
+3. 이외에도 css, html, jsp, xml 등에도 한글이 깨질 수 있으니 모두 utf-8로 설정한다.
+ css의 경우 : window - preferences - Wed - CSS Files에서 Encoding 부분에 ISO 10646/Unicode(UTF-8)이 되어있는지 확인.(사진 3-1번)
+ html의 경우 : window - preferences - Wed - HTML Files에서 Encoding 부분에 ISO 10646/Unicode(UTF-8)이 되어있는지 확인.(사진 3-2번)
+ JSP의 경우 : window - preferences - Wed - JSP Files에서 Encoding 부분에 ISO 10646/Unicode(UTF-8)이 되어있는지 확인.(사진 3-3번)
+ XML의 경우 : window - preferences - XML
+ 
+4. 위 과정을 마쳤음에도 한글이 깨져 나오는 경우
+ 프로젝트 파일에서 우클릭 - Properties(사진 4-1번)에서 Resource의 Inherited from container(UTF-8)이 체크되어있는지 확인한다.(사진 4-2번)
+
+5. 위의 과정은 eclipse의 코드 입력 창에서 한글이 깨졌을 때 해결하는 방법이었으며 console창에서 화면이 깨질 경우에는 Run - Run Configurations(사진 5-1번) 항목에서 Common의 Other에 MS949를 작성(사진 5-2번)하면 된다.
+
+6. 위의 과정을 모두 끝내고 코드를 실행하면 사진 6번과 같은 결과를 볼 수 있다.
+
+7. 문자열을 ''로 묶을 경우 (문자를 ""로 묶을 경우에는 문자를 문자열로 인식해서 오류가 뜨지 않는다.) 오류가 뜨는 것을 확인할 수 있다.(사진 7번)
+
+8. 만약 문자열 안에 ""을 사용하고 싶다면 \"\"와 같이 역슬래쉬를 이용하여 작성한다.(사진 8번)
+ 줄 넘김을 하고 싶다면 \n을 사용한다.
+ 
