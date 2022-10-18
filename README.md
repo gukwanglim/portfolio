@@ -1,6 +1,6 @@
 # portfolio
 
-## spring boot로 생성한 블로그를 이용하여 docker를 이용한 AWS 서버를 배포할 예정이었으나 에러가 발생하여 수정 중입니다.(사진은 블로그에 작성된 내용의 일부입니다.)
+##### spring boot로 생성한 블로그를 이용하여 docker를 이용한 AWS 서버를 배포할 예정이었으나 에러가 발생하여 수정 중입니다.(사진은 블로그에 작성된 내용의 일부입니다.)
 
 ### 1. ppt_hand : python과 mediapipe을 이용하여 간단한 손동작만으로 ppt를 조작할 수 있는 프로젝트.
 <div align="center">
