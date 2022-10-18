@@ -1,7 +1,7 @@
 # portfolio
 
 + ppt_hand : python과 mediapipe을 이용하여 간단한 손동작만으로 ppt를 조작할 수 있는 프로젝트.
-<img width="100%" src="https://user-images.githubusercontent.com/100823895/196312445-392c6cba-59d9-4de2-9d5d-a7250b105722.png"/>
+<img width="120%" src="https://user-images.githubusercontent.com/100823895/196312445-392c6cba-59d9-4de2-9d5d-a7250b105722.png"/>
   
   
 
