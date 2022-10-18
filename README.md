@@ -1,31 +1,26 @@
 # portfolio
 
-+ ppt_hand
-  * python과 mediapipe을 이용하여 간단한 손동작만으로 ppt를 조작할 수 있는 프로젝트.
++ ppt_hand : python과 mediapipe을 이용하여 간단한 손동작만으로 ppt를 조작할 수 있는 프로젝트.
 
   
   
 
-+ 쇼핑몰
-  * python, flask, SQLite를 이용한 쇼핑몰 만들기 프로젝트.
++ 쇼핑몰 : python, flask, SQLite를 이용한 쇼핑몰 만들기 프로젝트.
   
   
   
 
-+ 인스타그램 클론 코딩
-  * python, django, mariadb를 이용한 인스타그램 클론 코딩.
++ 인스타그램 클론 코딩 : python, django, mariadb를 이용한 인스타그램 클론 코딩.
   
   
   
 
-+ java
-  * 학습 내용 정리.
++ java : 학습 내용 정리.
   
   
   
 
-+ blog
-  * java, spring boot, mariadb를 이용한 블로그 만들기 프로젝트.
++ blog : java, spring boot, mariadb를 이용한 블로그 만들기 프로젝트.
   
 
 
@@ -33,4 +28,4 @@
 
 열람해주셔서 감사합니다.
 
-* spring boot로 생성한 블로그를 이용하여 docker를 이용한 AWS 서버를 배포할 예정이었으나 에러가 발생하여 수정 중입니다.
+ * spring boot로 생성한 블로그를 이용하여 docker를 이용한 AWS 서버를 배포할 예정이었으나 에러가 발생하여 수정 중입니다.
