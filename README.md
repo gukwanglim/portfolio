@@ -1,7 +1,5 @@
 # portfolio
 
-<img src="http://mazandi.herokuapp.com/api?handle={gukwanglim}&theme=warm"/>
-
 + ppt_hand
   * python과 mediapipe을 이용하여 간단한 손동작만으로 ppt를 조작할 수 있는 프로젝트.
   
