@@ -1,0 +1,42 @@
+1. User, Board, Reply 테이블 만들기
+    
+    User : (사진 1번)
+        필요한 테이블을 private를 사용하여 만들고 @Entity를 이용하여 자동으로 데이터 베이스에 생성되도록 한다.
+        또한, id는 primary key로 사용할 수 있도록 @Id로 선언해주고 @GeneratedValue(strategy = GenerationType.IDENTITY)로 프로젝트에 연결된 DB 넘버링 전략을 따라간다.
+        (여기서 프로젝트에 연결된 DB 넘버링 전략을 따라간다는 말은 private ind id;에서 데이터 베이스가 오라클일 경우에서는 스퀀스로, mysql일 경우에는 auto_incrememt로 간다는 말이다.(mariadb의 경우도 auto_incrememt))
+
+
+        또한, application.yml의 jpa 부분에서 use-new-id-generator-mappings: false처럼 false를 사용하면 jpa가 사용하는 기본 넘버링 전략을 따라가지 않는다는 말이다.
+        즉, jpa 기본 넘버링을 사용하는 것이 아닌 @GeneratedValue(strategy = GenerationType.IDENTITY)를 사용해 프로젝트에 연결된 DB 넘버링 전략을 따라간는 뜻이다.
+
+        @Column(nullable = false, length = 30)의 경우는 null 값을 받을 수 없고, 길이는 30을 넘지지 못한다.
+        password의 경우는 length를 100으로 준 이유는 나중에 해쉬로 암호화하기 위해서
+        private Timestamp createDate;부분은 가입한 시간을 저장하는 것으로 @CreationTimestamp를 사용하면 시간이 자동으로 저장된다.
+
+        -> username, password, email은 가입자가 기입할 수 있도록 비워놓고 id, createDate는 자동으로 기입되도록 된다.
+
+        private String role;에서는 회원가입된 아이디의 권한에 관련된 내용이다. 그렇기에 Enum을 사용하는 것이 좋다.
+        Enum을 사용하면 어떤 데이터의 도메인을 만들 수 있다.(admin, user, manager만 사용할 수 있게 된다.) - 프로그램에서 도메인이 정해졌다는 말은 범위가 정해졌다는 말이다.
+        @ColumnDefault("'user'")를 사용하여 디폴트값을 준다.(여기서 중요한 것은 "" 만 사용하는 것이 아니라 "" 안에 ''도 포함되어 있는 것이다. - 문자라는 것을 알려주기 위해서)
+
+        이렇게 작성한 다음에 application.yml의 jpa 부분에서 ddl-auto: create로 되어있는지 확인해야한다.
+        create 대신에 update, none 등등을 사용할 수 있는데, create는 새로운 테이블을 만들겠다는 말이다.(기존에 User 라는 테이블이 있어도 새로 만든다. 그렇기 때문에 create를 사용하고 나중에 update로 변경)
+
+        spring boot app을 실행하면 DB에 테이블이 생긴 것을 볼 수 있다.(사진 2, 4번)
+        사진 3번과 같은 에러가 뜨면 @CreationTimestamp 대신에 @CreatedDate를 사용하면 된다.
+
+            추가로 application.yml의 jpa 부분에서 physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl가 뜻하는 것은 @Entity가 동작할때, 변수명 그대로 테이블에 피드로 만드는 것이다.
+            만약, org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy로 사용하게 된다면 User 테이블에 myNmae 이라고 작성했을 경우, my_name으로 피드에 저장된다.
+
+    Board : (사진 6번)
+        User 테이블과 마찬가지로 id를 만들고 제목을 적을 title, 내용을 적을 content(@Lob를 사용한 것은 대용량 데이터를 저장하기 위해서) 조회수는 count(@ColumnDefault("0")와 같이 "" 안에 ''를 사용하지 않는다.(문자가 아니기 때문에))
+
+        User 테이블과 다르게 누가 글을 작성했는지 알아야하기 때문에 private User user;를 사용하는데 여기서 int를 사용하지 않고 User를 사용하는 이유는
+            DB의 경우에는 오브젝트를 저장할 수 없다. 그렇기 때문에 FK를 사용하여 다른 테이블의 데이터를 가져오게 되는데 java는 오브젝트를 저장할 수 있다.
+            이런 java 코드를 DB에 적용시키기 위해 @JoinColumn(name = "userId")를 사용하여 Board 테이블에서는 User 테이블의 userId를 가져와 사용한다는 뜻이다.
+            또한, @ManyToOne은 Many는 Board를, One은 User를 뜻하며, 한 명의 유저가 여러 개의 게시물을 올릴 수 있다는 말이다.(OneToOne의 경우는 1대1이다.)
+
+        코드를 작성하고 spring boot app을 실행하면 사진 5번과 같이 borad 테이블이 생성된 것을 볼 수 있다.
+
+    Reply : (사진 7번)
+        다른 테이블과 마찬가지로 id, content, createDate를 만들고 Board를 FK로 하는 boardId와 User를 FK로 하는 userId를 만든다.(사진 8번)

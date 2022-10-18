@@ -1,0 +1,89 @@
+1. 회원정보에 들어가면 사진 1번과 같이 http://localhost:8000/user/updateForm이 404로 뜨기 때문에 UserController.java에 들어가 만들어준다.(사진 2번)
+    이제 updateForm.jsp를 만들고(사진 3번) username은 수정할 수 없으므로 readonly를 사용.(사진 4번)
+
+    현재 header.jsp에서 <sec:authorize access="isAuthenticated()"><sec:authentication property="principal" var="principal"/></sec:authorize>가 걸려 있어 세션으로 저장된 로그인한 객체가 principal으로 저장되어 있음.
+        (사진 5번, 이 principal은 PrincipalDetail.java이다. 즉, principal.user를 사용하면 user 오브젝트에 접근할 수 있다.)
+
+    이제 http://localhost:8000/user/updateForm로 들어가보면 사진 6번과 같이 회원정보 수정 페이지가 뜨는 것을 볼 수 있다.
+
+    하지만 password의 경우, principal.user.password로 가져오면 해시처리가 되어있으므로 사용하지 않는 것으로 한다.
+
+2. 회원수정완료 버튼을 누르면 작동할 수 있도록 user.js로 가서 btn-update가 동작할 수 있도록 만들어 주는데 username은 사용하지 않으므로 지운다.(사진 8번)
+    하지만 username이 없으면 어떤 사용자의 회원정보를 수정하는지 모르기 때문에 updateForm.jsp에서 hidden을 만들어 id를 넣어준다.(사진 7번, 이때 user.js에서 username 대신에 id를 받아오게 한다.)
+
+    회원정보를 수정하는 것이기 때문에 ajax의 type은 put이며, url은 /user로 설정.
+
+3. /user를 만들기 위해서 UserApiController.java에서 @PutMappingㅇ르 사용하여 /user에 회원수정() 메소드를 사용할 수 있도록 설정.(사진 9번)
+
+4. 회원수정() 메소드를 만들기 위해 serService.java에서 @Transactional을 사용.(사진 10번)
+    수정 시에는 영속성 컨텍스트에  User 오브젝트를 영속화시키고, 영속화된 User 오브젝트를 수정해야한다.
+    때문에 영속화를 위해서 User 오브젝트를 DB로부터 가져온다.(이렇게하면 영속화된 오브젝트를 변경하면 자동으로 DB에 update문을 날려주게 된다.)
+
+    영속화를 시키기 위해 User persistance 변수에 user의 id를 담아주고 그것을 기반으로 password를 찾아 변경해준다.(이때는 이전 회원가입을 할 때, 사용되었던 BCryptPasswordEncoder를 사용)
+        persistance.setEmail(user.getEmail());으로 영속화된 persistance 객체의 변화가 감지되면 더티체킹이 되어 update문을 날려준다.
+        (즉, 회원 수정 종료 시 = service 종료 = 트랜젝션 종료 = 자동으로 commit 실행)
+
+5. 회원 정보 수정을 하기 위해 우선 데이터 베이스의 user 정보를 확인하고(사진 11번) 수정을 시행해보면(사진 12번) 데이터 베이스의 내용이 수정된 것을 확인할 수 있다.
+
+6. 하지만 회원정보에 다시 들어가보면 email이 변하지 않은 상태인 것을 확인할 수 있다.
+    이것의 이유는 데이터 베이스는 수정되었지만 회원정보가 세션에 들어가지 않아서 그렇다.(만약, 로그아웃을 하고 다시 로그인을 진행하게 된다면 변경된 값으로 들어가있다.)
+
+7. 세션값을 변경해주기 위해서 UserController.java의 세션을 변경시켜줘야하는 코드에 @AuthenticationPrincipal PrincipalDetail principal를 사용.(사진 18번)
+
+    우선, AuthenticationPrincipal이 어떻게 생성되는지에 대해 설명하자면(사진 15번)
+        - 사용자가 로그인 요청을 하게 되면  AuthenticationFilter를 거치게 된다.
+        - 이 필터는 로그인 요청을 받게 되면 Body의 username, password를 가지고 UsernamePasswordAuthentication Token을 만들게 된다.
+        - 이 토큰이 AuthenticationManager에게 전달되면 Manager는 Authentication 객체를 만들어낸다.
+            Authentication 객체를 만드는 방법은 
+                - 토큰을 UserDetailService에게 던진다.
+                - UserDetailService는 토큰 안의 username을 가지고 DB에서 해당 username을 가지고 있는 데이터를 확인한다.
+                    - 이때, username이 존재하면 Authentication 객체를 만든다.(당연하게도 없으면 만들지 않는다.)
+                    - 여기서 말하는 UserDetailService는 프로젝트에서 만든 PrincipalDetailsService.java를 말한다.
+
+                    - 즉, PrincipalDetailsService.java의 loadUserByUsername()에 UsernamePasswordAuthentication Token이 들어가게 되는 것이다.(사진 16번)
+                        - password의 경우는 spring이 따로 가져가 인코딩 과정을 거치게 된다.
+                            (이 과정은 SecurityConfig.java의 BCryptPasswordEncoder를 이용하여 SecurityFilterChain에서 수행, 사진 17번)
+
+        - 정리하자면 해당 user를 찾는 것은 UserDetailService, password의 비교는 AuthenticationManager가 한다.
+
+        - 이렇게 AuthenticationManager에서 password를 비교하고, UserDetailService에서 username가 있는지 확인을 하게되면 세션에 저장한다.(UserDetailService가 세션에 저장한다.)
+
+    세션에 값을 저장하기 위해서는 session.set~를 이용하여 직접 user의 정보를 집어넣는다.(user 오프젝트를 이용)
+        하지만 spring security는 user 오브젝트를 사용하지 않고 세션에 공간을 하나 만들고(시큐리티 컨텍스트) 여기에 Authentication 객체를 저장한다.
+
+    Authentication 객체는 AuthenticationManager가 만들어준다.
+
+        전체적인 흐름을 다시 정리하자면 
+
+            1. 사용자가 로그인 요청(username:test, password:1234)
+            2. AuthenticationFilterrk 이 정보를 가로채 username과 password를 기반으로 UsernamePasswordAuthentication Token을 만들게 된다.
+            3. 이렇게 만든 UsernamePasswordAuthentication Token을 AuthenticationManager에게 전달하면 Authentication 객체가 만들어지고 세션의 시큐리티 컨텍스트 영역에 저장된다.
+                하지만 세션을 만드는 것에는 조건이 있다.
+                    3-1. username을 UserDetailService(프로젝트에서는 PrincipalDetailsService(UserDetailService를 implements 받음))에 던진다.
+                        UserDetailService는 DB에서 username을 찾고 존재한다면 AuthenticationManager에게 응답을 한다.
+                    3-2. username의 존재를 알게 된 AuthenticationManager는 요청받은 password를 BCryptPasswordEncoder를 이용하여 해시화하고 DB와 비교.
+                        password도 일치할 경우 Authentication 객체 생성하여 세션의 시큐리티 컨텍스트에 저장.
+
+8. 위의 설명과 같이 UsernamePasswordAuthenticationToken, SecurityContext 등을 만들기 위해서는 사진 19번과 같이 UserApiController.java에 코드를 작성해야한다.
+    (여기서 UsernamePasswordAuthenticationToken에 권한을 주기 위해서는 principal.getAuthorities()를 사용해야한다.)
+    (또한, 이 코드는 사진 15번과 같은 구조를 직접 작성하여 만든 것이다.)
+
+9. 코드를 작성하고 다시 한번 회원정보를 수정해보면(사진 20, 21번) 로그인이 유지된다.(사진 22번)
+    하지만 회원정보에 들어가서 확인해보면 아직 세션이 변경되지 않은 상태라는 것을 확인할 수 있다.(사진 23번)
+        (오류 메시지 사진 24번)
+
+10. 직접 Authentication 객체를 세션의 SecurityContext에 직접 넣는 것은 불가능 한것이라고 판단하고 AuthenticationManager에 접근하여 로그인을 강제로 하여 Authentication 객체를 생성하는 방식으로 변경.
+
+11. UserApiController.java의 코드를 원상태로 복구.
+
+12. 이전에도 이것이 문제였을 수 있는데 현재 user.js의 update 부분을 보면 username은 필요가 없었기에 지워서 사용하고 있었다.
+    하지만 세션에 넣기 위해서는 username이 필요하기 때문에 사진 25번과 같이 user.js에 username을 받을 수 있게 작성해준다.
+
+    이제 SecurityConfig.java에서 AuthenticationManager를 생성하기 위해 authenticationManagerBean()을 상속받아 사용해야하는데 authenticationManagerBean()을 사용하기 위해서는 WebSecurityConfigurerAdapter를 사용해야한다.
+        하지만 security 5.7 버전부터는 WebSecurityConfigurerAdapter를 지원하지 않기 때문에 사진 26번과 같이 authenticationManager()를 사용하면 된다.
+        (이 때, 해당 Bean을 외부에서 사용하기 위하여 @Bean 어노테이션을 사용.)
+
+    마지막으로 UserApiController.java에 @Autowired 어노테이션을 사용하여 SecurityConfig.java에서 만든 authenticationManager를 사용할 수 있게 만들고, 
+        세션에 등록하기 위해 authentication 객체를 SecurityContext에 넣으면(사진 27번)
+
+        회원 정보를 수정한 후에도 로그인이 유지되며, 로그아웃 없이 바로 회원정보에 들어가면 변경된 email이 뜨는 것을 확인할 수 있다.

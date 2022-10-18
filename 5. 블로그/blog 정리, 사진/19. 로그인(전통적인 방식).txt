@@ -1,0 +1,31 @@
+1. 이전 joinForm.jsp와 같이 login.jsp를 수정한다.(사진 1번, json을 이용하는 것으로 form에 post를 사용하는 것이 아닌 script를 사용)
+
+2. user.js에 save와 같이 login을 작성한다.(사진 2번)
+
+3. "/blog/api/user/login"의 controller를 만들기 위해 UserApiController.java에서 Mapping(사진 3번)
+
+4. 로그인() 함수를 만들기 위해 UserService.java에서 사진 4번과 같이 @Transactional을 이용하여 로그인()을 정의하는데 readOnly = true를 사용하기 위해서는 
+    org.springframework.transaction.annotation.Transactional;를 import 해야한다.
+
+    또한, readOnly = true를 사용하는 이유는 정합성을 유지하기 위해 select 할 때 트랜젝션 시작하고 서비스 종료 시에 트랜젝션 종료하기 위해서이다.
+    (원래 트랜젝션은 select에 사용하지 않는다.)
+
+    findByUsernameAndPassword()은 존재하지 않는 함수로 이것을 만들어 사용하기 위해서는 UserRepositroy.java에 들어가서 사진 5번과 같이 JPA Naming 쿼리를 사용하면 된다.
+        User findByUsernameAndPassword(String username, String password);로 사용할 경우
+            쿼리문의 SELECT * FROM user WHERE username = ?1 AND password = ?2; 와 같이 된다.
+
+        또한, 다른 방식으로도 사용할 수 있는데 
+            @Query를 사용하여 (value = "SELECT * FROM user WHERE username = ?1 AND password = ?2", nativeQuery = true)를 주고
+            User login(String username, String password);를 작성하면 똑같이 사용할 수 있다.
+
+5. 다시 UserApiController.java로 돌아와서 사진 6번과 같이 principal이 null일 경우 session이 되게 만들고
+        (이 session은 public ResponseDto<Integer> login에서 HttpSession session으로 선언 -> 이런 식으로 만들지 않고 사진 11번과 같이 @Autowired를 사용하여 session을 만들 수 있다.)
+    session을 만들고 나서 return new ResponseDto<Integer>(HttpStatus.OK.value(), 1);의 1이 응답하게 되면 login.jsp에서 user.js이 실행될 때, 로그인이 완료되면 /blog로 이동하고
+    /blog에서는 무조건 header.jsp가 실행되는데 header.jsp에서는 사진 7번과 같이 <%@ taglib prefix = "c" uri = "http://java.sun.com/jsp/jstl/core" %>를 추가하여 <c:>를 사용할 수 있게 한다.
+
+    <c:when test="">와 <c:otherwise>는 if구문와 비슷한 역할을 수행하며
+        만약, principal의 session이 비어있다면 로그인, 회원가입이 존재하는 네비게이션바를 띄우고
+        그렇지 않다면 글쓰기, 회원정보, 로그아웃이 존재하는 네비게이션바를 띄우는 것이다.
+
+    이제 로그인을 진행하면 사진 8번과 같이 로그인이 완료된 것을 확인할 수 있으며 로그인이 되어있는 상태에서는 네비게이션바가 바뀐 것을 확인할 수 있다.(사진 9번)
+        (console 창에서도 "SELECT * FROM user WHERE username = ?1 AND password = ?2" 쿼리가 실행됨을 볼 수 있다.(사진 10번))

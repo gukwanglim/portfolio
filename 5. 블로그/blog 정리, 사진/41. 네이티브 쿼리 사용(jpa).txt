@@ -1,0 +1,60 @@
+1. 현재 댓글쓰기()를 만들 때, BoardService.java에서 userId와 boardId는 영속화를 이용하여 가져오게 되어있다.
+    물론, 이 방법이 틀린 것은 아니지만 이런 식으로 하나씩 영속화는 시키는 것은 귀찮음을 동반하여 오타가 발생하는 경우가 많이 생길 수 있다.
+    
+    영속화를 사용하지 않고 댓글쓰기() 기능을 사용할 수 있게 하기 위한 방법도 존재한다.
+        방법은 ReplyRepositroy.java로 가서 직접 함수를 만드는 것으로 사진 1번과 같이 코드를 작성한다.
+
+        mSave()라는 메서드를 만들어 사용하는데
+            여기서 mSave()는 기존에 존재하는 것이 아닌 직접 만든 메서드로 아직 정의되지 않은 함수이기 때문에 @Query를 사용하여 동작할 때, 어떤 쿼리가 작동하는지 알려줘야한다.
+
+            value="INSERT INTO reply(userId, boardId, content, createDate) VALUES(?1, ?2, ?3, now());"와 같이 쿼리문을 작성.
+                이때, reply(userId, boardId, content, createDate)의 순서는 ReplySaveRequestDto.java의 순서와 같이 만든다.(사진 2번)
+
+            이렇게 쿼리문을 작성하고 nativeQuery = true를 추가하면 value로 작성한 쿼리문이 동작하게 된다.
+
+        이제 BoardService.java로 돌아와 영속화와 .builder()를 지우고 ReplyRepositroy.java에서 만든 mSave()를 사용하면 한 번에 저장할 수 있게 된다.
+
+2. spring boot app을 실행하여 댓글을 작성해보면 사진 4번과 같이 에러가 발생하며 댓글 작성은 완료되지만 댓글이 올라간 화면이 나타나지 않았다.
+    에러를 자세히 살펴보자면 
+        Resolved [org.springframework.dao.InvalidDataAccessApiUsageException: 
+        At least 2 parameter(s) provided but only 1 parameter(s) present in query.; nested exception is java.lang.IllegalArgumentException: 
+        At least 2 parameter(s) provided but only 1 parameter(s) present in query.]
+        와 같이 파라미터를 제대로 제공받지 못했다는 말이었다.
+
+        문제를 해결하기 위해서 ReplyRepositroy.java의 mSave()에 넣어준 replySaveRequestDto를 쪼개서 사용한다.(사진 5번)
+        mSave()의 파라미터를 수정했기 때문에 BoardService.java에서 이에 맞게 값을 넣어줘야 한다.(사진 6번)
+
+    이렇게 한다면 댓글 등록이 완료되고(사진 7번), 곧바로 등록된 댓글이 게시글에 달리는 것을 확인할 수 있다.(사진 8번)
+
+    데이터 베이스를 확인해보면 사진 9번과 같이 이전에는 createDate의 값이 null로 들어가 있었지만, nativeQuery를 사용하여 now()를 넣어주기 때문에 null이 아닌 값이 들어가는 것을 확인할 수 있다.
+
+* 강의 영상에서는 오류가 발생했는데 실제 프로젝트를 실행하고 있을 때는 오류가 발생하지 않았다.(https://www.youtube.com/watch?v=FsZLNUJBKOc&list=PL93mKxaRDidECgjOBjPgI3Dyo8ka6Ilqm&index=72)
+    영상에서는 오류를 잡기 위해서 @Modifying을 사용한다.(여러 가지 방식을 사용하여 오류를 잡는 것도 경험이므로 일단 이 방법을 시도한 후, 코드를 원래대로 되돌리기로 한다.)
+
+    사진 10번과 같이 @Modifying을 사용하게 되면 데이터 타입은 무조건 int로 받아야 한다.
+        (insert 방식으로 update나 delete를 받게 된다면 기본적으로 JDBC는 업데이트 된 행의 개수를 return 해준다.
+        만약, 1이 return 된다면 1개가 save, 0이 return 되면 save 없음, -1이 return 되면 오류 발생하게 된다.)
+
+    @Modifying를 사용해도 사진 11, 12번과 같이 댓글이 등록됨을 확인할 수 있으며 데이터 베이스에도 문제없이 들어가는 것을 확인할 수 있다.(사진 13번)
+
+    문제는 해결했지만 실제로 insert가 1, 0, -1 과 같은 값을 return 해주는 것인지 확인해보기 위해서
+        BoardService.java에서 int result를 받아(사진 14번) 출력해보면 사진 15번과 같이 1을 return 하는 모습을 볼 수 있다.
+
+* 값을 제대로 return하는지 확인해보기 위해서는 System.out.println("BoardService : " + reply.getId());와 같이 사용하여 console창에 보이게 만들 수 있다.
+    하지만 한 번에 여러 값(userId, boardId, content 등)을 보기 위해서 System.out.println()를 그만큼 여러 번 찍어야 한다는 말이 된다.
+
+    한 번에 모든 값을 return하여 문제가 없는지 확인하기 위해서는 (예를 들어 Reply의 데이터를 확인하기 위해서)
+        Reply.java에 들어가 toString()을 @Override 하는데 쉽게 하는 방법은 
+            우클릭 - Source - Generate toString()(사진 16번)에 들어가 모든 항목을 선택하고 만들면 된다.(사진 17번, 이미 한 번 만든적이 있다는 문구가 나올 수도 있는데 무시하면 된다.)
+
+        이렇게하면 사진 18번과 같이 자동으로 @Override된 toString()이 작성된다.
+        (이렇게 만든 toString()은 오브젝트 출력 시 자동으로 호출된다.)
+
+    이제 toString()을 테스트하기 위해서 src/test/java 안의 com.cos.blog 패키지에서 ReplyObjectTest 클래스를 생성한다.(사진 19번)
+
+    사진 20번과 같이 reply 변수에 .builder()를 사용하여 값을 넣고 System.out.println()로 출력을 하게 되면 toString()을 호출하게 된다.
+        (ReplyObjectTest.java는 테스트를 위해 만들어진 클래스이므로 @Test 어노테이션을 사용한다.(이때 @Test 어노테이션은 junit으로 import한다.))
+
+    실행하는 방법은 우클릭 - Run As - JUnit Test(사진 21번)이다.
+
+    실행이 완료되면 사진 22번과 같이 userId, boardId, content 등을 하나하나 get~을 이용하지 않고도 한 번에 출력할 수 있다.

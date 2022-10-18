@@ -1,0 +1,23 @@
+1. 글 수정을 위해 detail.jsp에서 수정하기 버튼을 <a>로 만들어 하이퍼링크(href)로 /board/${board.id}/updateForm 주소를 연결한다.(사진 1번)
+    /board/${board.id}/updateForm을 띄우기 위해 사진 2번과 같이 BoardController.java에서 /board/{id}/updateForm를 @GetMapping 시키고, 글상세보기() 메소드를 다시 사용한다.
+
+2. board/updateForm을 return하기 위해서 updateForm.jsp를 생성한다.(사진 3번)
+    updateForm.jsp는 saveForm.jsp와 비슷하게 사용하는데 제목과 내용을 ${board.}을 이용하여 가져온다.
+
+        특이사항으로는 <input type="hidden" id="id" value="${board.id}"/>를 사용한 것으로 id를 사용하기 위해서이다.
+        또한, 수정 페이지로 넘어가면 기존에 적어놓은 title과 content를 그대로 들고와 수정에 쓰일 것으로 
+            title의 경우에는 input value="${board.title}"의 형식으로
+            content의 경우에는 <textarea>${board.content}</textarea>의 형식으로 작성한다.
+
+3. 이제 '수정' 버튼을 클릭했을 때, 작동하게 만들기 위해서 board.js에서 사진 5번과 같이 만들어 준다.
+    (여기서는 글 수정을 위한 것으로 post가 아닌 put을 사용한다.)
+
+4. "/api/board"+id 주소를 만들기 위해서 사진 6번과 같이 BoardApiController.java에서 글수정하기() 메소드를 부른다.
+
+5. 글수정하기() 메소드를 만들기 위해 사진 7번과 같이 BoardService.java에서 글수정하기() 메소드를 생성한 후, orElseThrow()를 활용하여 board를 영속화 한다.
+    이렇게 영속화를 시키면 영속성 컨텍스트에 board가 들어가게 되고 이 board 데이터는 table에 있는 board 데이터와 동기화가 되어있다.
+
+    이것을 활용하여 title과 content를 바꾸기 위해서 board.setTitle(), board.setContent()을 사용한다.
+        (해당 함수로 종료 시(Service가 종료될 때) 트랜젝션이 종료된다. 이때 더티체킹 - 자동 업데이트 진행. DB flush)
+
+6. 코드를 작성한 후, 수정을 실행해보면 사진 8번과 같이 수정이 완료되고 사진 9번처럼 index 페이지에 수정된 내용이 올라가는 것을 확인할 수 있다.

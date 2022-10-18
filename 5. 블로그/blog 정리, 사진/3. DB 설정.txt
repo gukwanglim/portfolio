@@ -1,0 +1,77 @@
+1. 우리나라 언어는 컴퓨터가 처리하기 위해서는 character setting을 다시 설정해줘야 한다.
+ (기본적인 default 설정값이 한글을 표현할 수 있는 설정이 아니기 때문이다.)
+
+ Mariadb의 MySQL Client에서 show variables like 'c%';를 실행하면 사진 1번과 같이 character_set_database 부분이 latin1으로 되어 있는 것을 볼 수 있다.(사진 1번)
+ 이것을 UTF-8로 변경하기 위해서는 환경설정 파일을 수정해야한다.
+
+ 환경설정 파일은 C:\ProgramData\Microsoft\Windows\Start Menu\Programs\MariaDB 10.8 (x64)의 my.ini 파일이다.
+ 이 파일에 들어가 사진 2번과 같이 utf-8을 추가시킨 후, 작업관리자에서 MariaDB의 사용을 중지하고 다시 실행한다.
+
+ 다시 show variables like 'c%';를 실행하여 확인해보면 사진 3번과 같이 latin1이 utf8mb3로 변경됨을 확인할 수 있다.
+
+2. 새로운 데이터베이스를 만들기 위해 HeidiSQL에 들어가 사진 4번과 같은 퀴리를 실행하고 프로그램을 다시 실행하면 blog 데이터베이스가 생성됨을 확인할 수 있다.
+    여기서 쿼리문을 약간 설명하자면
+
+        create user 'cos'@'%' identified by 'cos1234'; 부분은 사용자 아이디 및 아이피 주소를 만드는 것이다.
+        GRANT ALL PRIVILEGES ON *.* TO 'cos'@'%'; 부분은 해당 유저에게 모든 권한을 주는 것이다.
+        
+            [사용자 만들기]
+            - CREATE USER 'cos'@'localhost' IDENTIFIED BY '1234';  -->  사용자 이름 cos, 내부에서만 접속 가능, 비밀번호 1234.
+            - CREATE USER 'cos'@'%' IDENTIFIED BY '1234';   -->  사용자 이름 cos, 어디에서나 접속 가능, 비밀번호 1234.
+            - CREATE USER 'cos'@'192.168.0.111' IDENTIFIED BY '1234';   -->  사용자 이름 cos, 192.168.0.111에서 접속 가능, 비밀번호 1234.
+                
+                * CREATE OR REPLACE USER 'jb'@'localhost' IDENTIFIED BY '1234';
+                 이미 존재하는 사용자 이름으로 사용자를 만들려고 하면 에러가 난다. OR REPLACE를 붙이면, 이미 존재하는 사용자 이름인 경우 기존 사용자를 삭제하고 다시 만든다.
+                * CREATE USER IF NOT EXISTS 'jb'@'localhost' IDENTIFIED BY '1234';
+                 IF NOT EXISTS를 붙이면, 같은 이름의 사용자가 없을 때만 사용자를 추가한다.
+
+            [사용자 이름, 비밀번호 변경하기]
+            - RENAME USER 'cos'@'localhost' TO 'hs'@'%';   -->   'cos'@'localhost'를 'hs'@'%'로 변경
+            - SET PASSWORD FOR 'cos'@'localhost' = PASSWORD( '12345' );  -->  'cos'@'localhost'의 비밀번호를 12345로 변경
+
+            [사용자 삭제하기]
+            - DROP USER 'cos'@'%';  -->  'cos'@'%' 삭제
+            - DROP USER IF EXISTS 'cos'@'%';  -->  'cos'@'%'가 존재하는 경우에 삭제
+
+            [사용자 목록보기]
+            - SELECT User, Host FROM mysql.user;  -->  mysql 데이터베이스의 user 테이블에서 필요한 정보 출력
+
+            [권한 부여하기]
+            - GRANT ALL PRIVILEGES ON test.* TO 'cos'@'localhost';  -->  cos@localhost에게 test 데이터베이스의 모든 테이블에 대한 모든 권한 부여
+            - SHOW GRANTS FOR 'cos'@'localhost';  -->  cos@localhost가 가진 권한 출력
+
+            [권한 제거하기]
+            - REVOKE ALL on test.* FROM 'cos'@'localhost';  -->  cos@localhost가 test 데이터베이스에 가진 모든 권한을 제거
+
+3. 이제 DB 설정을 끝냈으니 spring에 연결을 해야한다.
+ 연결하기 위해서는 프로젝트의 src/main/resources 파일에서 application.properties(사진 5번)을 application.yml로 변경(사진 6번, .yml은 json과 비슷한 데이터 타입을 가지고 있다.)
+ 이렇게 .yml 파일로 변경하면 모든 spring의 설정을 할 수 있게된다.(이전에는 .xml 파일에 설정했지만, 요즘에는 .yml 파일로 설정한다.)
+ (.properties 파일의 경우에는 .을 기준으로 여러 설정을 할 수 있지만, .yml은 :와 들여쓰기를 사용하여 편의성 부분이 훨씬 좋다.(중복되는 코드 감소))
+
+ application.yml에
+
+    spring:
+        datasource:
+            driver-class-name: org.mariadb.jdbc.Driver                                    (mysql의 경우는 com.mysql.cj.jdbc.Driver)
+            url: jdbc:mariadb://localhost:3306/blog?serverTimezone=Asia/Seoul             (mysql의 경우는 jdbc:mysql://localhost:3306/blog?serverTimezone=Asia/Seoul)
+            username: cos
+            password: cos1234
+
+ 코드 작성.(사진 7번)
+
+ 하지만 spring을 실행하면 사진 8번과 같은 에러가 뜨며 서버에 연결되지 않았다.
+
+ 아마 참고 영상에서는 mysql을 사용하지만 나는 mariadb를 사용하면서 처음 설정부터 문제가 생긴 것 같다.(구글링으로 문제를 해결하려 했지만 spring boot에서 mariadb를 사용하기 위해서는 build.gradle에 코드를 추가해야하는데 나에게는 build.gradle 파일이 보이지 않는다.)
+
+ 찾아보니 처음 spring boot project를 설정할 때, gradle 혹은 maven 을 선택하는 것이었는데 나는 maven을 선택했기 때문에 build.gradle 파일이 없던 것이다.
+ 즉, maven을 선택하고 mariadb를 사용하기 위해서는 pom.xml 파일에서 사진 10번과 같이 코드를 작성하여 mariadb 사용을 선언해야한다.
+ (여기서 사진 9번과 같이 이미 포트를 사용하고 있다는 에러가 발생할 수 있는데 이것은 파일을 수정하고 저장하였을때 자동으로 새로고침(1. 의존성 설정에서 Spring Boot DevTools 부분))이 되는데
+ 이것을 무시하고 다시 Spring Boot App을 실행하면 뜨는 에러이다.)
+
+
+ (# 참고로 gradle을 설정했을 경우 mariadb를 사용하기 위해서는 build.gradle에
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client' // MariaDB)
+
+    코드를 작성하면 된다.)

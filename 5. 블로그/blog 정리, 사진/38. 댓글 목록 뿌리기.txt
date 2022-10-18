@@ -1,0 +1,43 @@
+1. 아직 댓글 작성 기능은 만들지 않았지만, 댓글이 들어가는지 확인하기 위해서 reply table에 데이터를 넣는다.(사진 1번)
+    댓글은 글 상세보기를 눌러 게시글에 들어갈 때 같이 들고 와야한다.
+
+    즉, 상세보기를 눌렀을 때, 보이는 내용이므로 BoardService.java의 내용이다.
+        때문에 Board로 가는 Repositroy를 따로 만들어야 한다.
+
+    repositroy 패키지에 ReplyRepositroy 클래스를 만들고(사진 2번) (이때, class가 아닌 interface로 설정) JpaRepository를 상속시키는데 type은 Reply, Reply의 ID가 int이므로 Integer를 사용한다.(사진 3번)
+
+2. 진도를 나가기 전에 잠시 board.java를 보면(사진 4번) board table에는 id, title, content, count, user, reply, createDate 등의 필드가 있다.
+    이 중에서 reply는 mappedBy으로 연관관계의 주인이 아니지만(FK가 아님, DB에 존재하지 않음) board를 select 할 때, EAGER 전략이므로 reply를 바로 패치해서 들고오게 된다.
+    한 마디로 BoardService.java에서 findById(id)를 이용하여(사진 5번) board를 들고 오면 BoardController.java에서 boardService으로 받을 때, boardService에 담겨있는 board는 reply를 들고 있는다.
+
+    즉, 상세보기 페이지(/board/{id})는 board를 들고 있으며 board는 이미 reply를 가지고 있으므로 detail.jsp에서 <c:forEach>를 사용하여 댓글을 올릴 수 있게 된다.
+        - ${board.reply} : board에 들어있는 reply(해당 게시글에 적힌 댓글)
+        - ${reply.content} : reply에 들어있는 content(댓글 내용)
+        - ${reply.user.username} : reply에 들어있는 user의 urename(댓글을 작성한 작성자)
+
+        그런데 사진 8번을 보면 Board에 User와 Reply가 존재하고, Reply에도 Board와 User가 존재하는 것을 확인할 수 있다.
+            현재는 사진 9번과 같이 별다른 문제 없이 댓글이 작성된 것을 확인할 수 있지만 이후에 문제가 발생할 가능성이 농후하다.(Board와 Reply가 무한 참조를 할 수 있다.)
+            (만일, 댓글이 보이는 순서를 변경하고 싶다면 1번과 같이 @OrderBy 어노테이션을 사용하면 된다.(하지만 원래 댓글은 제일 먼저 적힌 것이 제일 위에 보이므로 @OrderBy는 사용하지 않을 예정이다.)
+
+3. 어떤 문제가 발생할 수 있는지 확인해보기 위해서 사진 10번과 같이 test 패키지에 ReplyControllerTest 클래스를 생성한 후, 사진 11번과 같이 코드를 작성해보면 사진 12번과 같이 DB의 값을 계속 호출하는 것을 볼 수 있다.
+    일단 ReplyControllerTest.java에서는 boardRepositroy.findById(id).get();을 이용하여 board의 정보만을 가져오려고 했다.
+    하지만 board를 가져오기 위해서는 (Board.java에서 확인하면) User와 Reply를 가져오게 되어 있다.
+        여기서 User를 가져오는 경우에는 User.java에 아무런 연관관계가 없기 때문에 문제가 발생하지 않는다.
+        반면에 Reply를 가져오는 경우에는 Reply.java에서 Board와 User를 호출하게 된다.
+
+        이러한 과정이 문제가 되는 이유는 boardRepositroy.findById(id).get();으로 데이터를 호출할 때, 
+            jackson 라이브러리가 작동하여 오브젝트를 json으로 return하게 된다.
+                이때, 모델의 getter를 호출하게 되는데 Board 모델을 getter하게 되면 id, title, content, count, user, reply, createDate를 return하게 된다.
+                    이렇게 호출된 reply는 똑같이 자신이 들고 있는 필드를 getter하게 되는데 여기에 board가 존재하기 때문에 board는 다시 reply를 호출하게 되는 무한 호출이 되는 것이다.
+
+4. 위와 같은 문제를 해결방법을 간단하게 생각해보면 Board가 자신이 가지고 있는 필드를 호출한 후, Reply는 Board를 호출하지 않게 만들면 된다.
+    이렇게 할 수 있는 방법이 @JsonIgnoreProperties 어노테이션을 사용하는 것이다.
+    사진 13번과 같이 Board.java에서 Reply를 호출할 때, @JsonIgnoreProperties({"board"})와 같이 사용하면 Reply.java의 필드를 호출할 때, board를 무시하고 호출하게 된다.
+
+    그 결과 사진 14번과 같이 필요한 정보만을 출력하는 것을 확인할 수 있다.
+        (이때, json의 형태로 나오는 이유는 jsaon view 프로그램을 사용했기 때문이다. 이전에도 이 프로그램을 사용하고 있었지만 작동을 하지 않다가 갑자기 작동에 성공하였다.)
+        여기서 reply 부분을 살펴보면 user는 호출하였지만 board를 호출하지 않은 것을 확인할 수 있다.
+
+        (만약, reply를 바로 호출한다면 board도 출력하게 된다. 즉, Board.java에 @JsonIgnoreProperties을 사용했기에 Board를 통해서 호출될 경우에만 작동하는 것이다.(사진 15, 16번))
+
+    이외에도 무한 참조를 방지하는 방법이 여러가지가 있지만, 나머지 방법들은 이후에 배우기로 한다.

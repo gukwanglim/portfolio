@@ -1,0 +1,108 @@
+1. 로그인, 회원가입 페이지를 만들기에 앞서
+    모든 페이지에 들어가게 될 header, footer 부분을 만들기 위해 사진 1번과 같이 layout 폴더에 header.jsp, footer.jsp 파일을 만든다.
+    기존 index.jsp의 header, footer 부분을 잘라내 header.jsp, footer.jsp에 옮겨준다.
+
+    header, footer를 다른 jsp 파일에서 사용하기 위해서는 사진 2번과 같이 <%@ include file="layout/header.jsp" %> 의 형식을 사용하면 된다.
+
+    회원가입 페이지(joinForm.jsp)를 만들기 위해 사진 3번과 같이 user 폴더 안에 joinForm.jsp(index.jsp 복사)를 만들고 w3에서 회원가입 폼을 가져온다.(사진 4번에서는 Bootstrap 4 Stacked Form를 사용)
+        이때 중요한 것은 header.jsp, footer.jsp 파일이 다른 경로에 존재하기 때문에 알맞은 경로를 설정해야한다.
+
+    jsp 파일을 만들고 이것을 index.jsp에서 로그인, 회원가입 버튼을 눌렀을 때, 해당 jsp 파일로 넘어가게 연결시키기 위해서는 이전에 만들었던 UserController.java에 Mappting을 시켜준다.(사진 6번)
+
+    완성된 회원가입 페이지는 사진 5번과 같다.(필요한 내용이 있으면 joinForm.jsp에서 수정하여 사용한다.)
+    (로그인 페이지는 회원가입 페이지에서 email을 제외하면 된다.)
+
+2. 회원가입 버튼을 눌렀을 때의 동작을 설정하기 위해 사진 7번과 같이 <form action="/user/join" method="POST">으로 수정한다.
+    여기서 POST 방식을 사용하는 이유는 한 건이 insert 되는 것이기 때문에 Get 방식이 아니라 Post 방식이 된다.
+    하지만 이런한 방식은 예전에 사용되던 것이고 이번 프로젝트에서는 json 방식을 사용하기로 한다.
+
+    우선, 사진 8번과 같이 src/main/resources/static 위치에 js 폴더를 만들고(spring은 기본적으로 static 파일을 읽어들이며 정적인 파일을 담기 위해 js 폴더를 만든다.) 그 안에 javascript 파일을 만든다.
+        이전에 joinForm.jsp에서 submit 버튼이 form 안에 들어 있으면 submit이 되기 때문에(?) form 밖으로 꺼낸 후, id="btn-save"를 추가한다.
+        또한, user.js 파일을 불러오기 위해 script 코드를 추가시켜주는데 여기서 경로를 "/blog/js/user.js"로 설정한 이유는 기본 경로가 static이기 때문이다.(사진 9번)
+
+    본론으로 돌아가 user.js 파일을 작성하는데 사진 10번에서 $("btn-save").on("click", ()=> {});는 btn-save라는 id를 가진 버튼이 click 되었을 경우, 뒤에 있는 ()=> {} 구문이 실행되는 것으로
+    사진에서는 save 함수가 동작하게 되며 현재 save 함수는 단순하게 버튼이 눌린 것을 확인하는 용도로만 작성되었다.
+    (이때 function() {}을 사용하지 않고 ()=> {}를 사용하는 이유는 this를 바인딩하기 위해서이다.
+        (나중에 자세히 설명, 그래도 간단히 설명하자면 현재는 코드 밖(init 밖)에서 사용하게 되는 this와 코드 안에서 사용하는 this가 같지만 function을 사용하게 되면 코드 안의 this 값이 window 객체를 가르키게 된다.))
+
+    그리고 index.init();의 경우는 윗 줄의 코드는 오브젝트이기 때문에 동작하지 않으니까 index.init();으로 호출하면 위에서 정의한 init 함수가 동작하는 방식이다.
+    이렇게하면 버튼을 눌렀을 때, 사진 11번과 같은 문구를 확인할 수 있다.
+
+    잘 연결되어 있음을 확인했으므로 사진 12번과 같이 submit 버튼을 눌렀을 때, username, password, email의 정보를 가져와 data에 저장하고 그것을 console에서 확인해보면 사진 13번과 같이 나온다.
+
+
+3. 회원가입 시 ajax를 사용하는 이유
+    위에서 버튼이 연결되어 있는 것을 확인했기에 이제는 버튼을 눌러 회원가입이 진행되는 것을 구현할 차례이다.
+    이 프로젝트에서는 회원가입을 하기 위해서 ajax를 사용하게 되는데 그 이유는 크게 두 가지이다.
+
+        3-1. 요청에 대한 응답을 html이 아닌 data(json)을 받기 위해서
+            클라이언트의 브라우저는 서버에 요청을 하게 되고, 서버는 그에 대한 응답을 html로 한다.
+            하지만 클라이언트가 꼭 브라우저만을 사용하는 것이 아니다.
+            예를 들어 앱을 통하여 요청을 하게 되면 안드로이드의 경우는 java 코드를 사용므로 서버가 응답해주는 html을 이해하지 못하게 된다.
+            때문에 응답은 html이 아닌 data만을 받으면 되는 것이다.
+            즉, 브라우저와 앱을 모두 사용하게 된다면 서버를 두 번 만들어야 하는 일이 발생한다.
+
+            이런 문제점을 해결하기 위해서 브라우저, 앱의 구분없이 data를 return 해주면 된다.
+            이 경우에는 브러우저에서는 data를 return 받는 순간 다시 request를 하게 되고(예를 들어 회원가입이 완료되면 메인 페이지를 요청) 서버는 그에 맞는 return을 해준다.(메인 페이지(html)를 응답)
+            앱의 경우에는 data를 return 받으면 앱 내부에서 알아서 메인 페이지를 보여주는 방식이다.
+
+            이렇게 데이터를 응답받게 만드는 것이 ajax 이다.
+
+        3-2. 비동기 통신을 하기 위해서
+            우선, 비동기 통신에 대해 간단하게 설명하자면
+                프로그램은 1- 2 - 3 - 4 - 5와 같이 순서대로 일의 처리를 실행한다.
+                하지만 프로그램 실행 도중에(예를 들어 3번 과정) 시간이 오래 걸리는 과정(외부에서 다운받기)이 있다면 프로그램은 그 시간동안 지체된다.(이런 것을 pending이라고 한다.)
+
+                때문에 다운과 같이 시간이 걸리는 작업은 잠시 그 작업을 할 수 있는 장치에 맡겨두고 빠르게 진행할 수 있는 다음 과정(4, 5번)을 진행하는 것이다.
+                (만약, 4번 진행 도중에 3번이 끝나면 3번의 마무리를 먼저 진행 후, 4번을 이어서 진행한다.)
+
+                이런 것을 '비동기'라고 한다.
+
+4. ajax 사용하기
+    우선, ajax를 사용하기 때문에(json 방식) 기존 joinForm.jsp에서 <form action="/user/join" method="POST"> 부분은 지워야한다.(사진 14번)
+
+    $.ajax({}).done(function() {}).fail(function() {}); 부분은 ajax 통신을 이용하여 3개의 데이터(username, password, email)를 json으로 변경하여 insert 요청을 하는 것이다.(사진 15번)
+    이 코드는 회원가입 수행을 요청하게 되면 문제가 없을 경우에는 .done()이 작동하고 문제가 발생할 경우에는 .fail()이 동작하게 된다.
+    또한, ajax 호출 시, 기본 Default가 비동기 호출이다. 
+
+        ajax의 type은 기존 코드에서 post를 사용했기에 똑같이 post를 사용한다.
+        받아오게 될 data는 위에서 작성한 데이터(username, password, email)를 불러오는 것인데 현재의 data는 javascript object이므로 java는 이해하지 못한다.
+            때문에 JSON.stringify(data)을 사용하여 json으로 변경하는 것이다.
+            이것은 http의 body 데이터가 되고 이것을 날릴 때는 MIME 파일이 필요하다.(현재 보내는 파일이 무슨 데이터인지 알려줘야한다.)
+                보낸 파일의 데이터를 알려주기 위해서 contentType: "application/json; charset=utf-8" 작성.
+            응답은 json으로 받기 위해 dataType: "json" 작성.(요청을 서버로 하여 응답이 왔을 때 기본적으로 대부분이 문자열. 만약, 생긴게 json이라면 javascript 오브젝트로 변경)
+                즉, javascript의 형태로 .done(function() {}) 혹은 .fail(function() {})의 안에 들어가 요청.
+
+5. ajax에서 url을 "/api/user"으로 요청하도록 설정했기 때문에 controller 패키지에서 java 파일을 더 만들어야한다.(사진 16번)
+    (이때 만든 UserApiController.java는 앱에서도 사용이 가능하다.)
+
+    사진 17번에서와 같이 데이터만 return하기에 @RestController를 사용하였고, json을 받아오는 것으로 @RequestBody 사용했다.
+
+    코드를 모두 작성한 후, 테스트 실행을 했더니 사진 18번과 같이 $.ajax is not a function 오류가 발생했다.
+        이 오류는 jquery를 가져올 때, 사진 19번과 같이 "https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.slim.min.js"로 slim를 사용했기 때문이다.
+        slim이 아닌 기본적인 모드 "https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"를 사용하면 오류 문제는 해결되지만 사진 20번과 같이 회원가입이 완료된다.
+        또한, UserApiController.java에서 save가 진행되면 return 1;을 받게 했기에 사진 21번과 같이 확인할 수 있다.
+            (이 return 값은 user.js에서 .done(function(resp) {}) 부분의 resp에 담기게 된다.)
+
+    이렇게 받은 return값을 status로 확인하기 위해서 사진 22번과 같이 com.cos.blog 아래에 dto 패키지와 ResponseDto 클래스를 만든다.
+    이곳에 사진 23번과 같이 코드를 작성하는데 public class ResponseDto<T>는 제네릭을 만들어 사용한다.
+    ResponseDto<T> 제네릭은 다시 UserApiController.java에서 return 값을 1 대신에 사용한다.(사진 24번)
+
+    다시 회원가입을 시도하며 console 창에 내용의 return값을 띄워보면 사진 25번과 같이 data와 status를 받아올 수 있게 된다.
+    즉, status를 확인하여 정상적인 응답(200)을 받았는지 확인할 수 있다.(오브젝트의 형태)
+    하지만 현재 코드에는 200 응답을 직접 200이라 작성했기 때문에 사진 26번과 같이 HttpStatus를 사용하면 된다.
+        다만, HttpStatus의 데이터 타입은 enum으로(사진 27번) 사진 28번과 같이 ResponseDto.java에서 status의 데이터 타입을 HttpStatus로 선언해줘야 한다.
+
+        이렇게하면 사진 29번과 같이 ok값을 받아올 수 있다.(오브젝트의 형태)
+        
+        하지만 회원가입이 제대로 동작했기 때문에 1을 받아한다고 예측을 했었다.(현재는 GlobalExceptionHandler가 return 되는 것이다.)
+        때문에 사진 30, 31, 32, 33번과 같이 수정.(이전에 현재 User table의 username 값이 unique가 아니기 때문에 사진 34번과 같이 User를 수정)
+
+        이제 postman에서 새로운 회원가입을 시도했을 경우 사진 35번과 같이 나오는 것을 확인할 수 있고, 같은 내용으로 회원가입을 시도하면 사진 36번과 같이 나오는 것을 확인할 수 있다.
+        (하지만 이 부분은 아직 이해하기 힘든 부분이 있음(https://www.youtube.com/watch?v=f5zHFb1BHmY&list=PL93mKxaRDidECgjOBjPgI3Dyo8ka6Ilqm&index=48))
+
+    (위에서 ajax는 dataType: "json"로 받아와야 javascript 오브젝트로 변경해준다고 하였지만, 이 코드를 지우고 사용해도 javascript 오브젝트로 반환하는 것을 확인)
+    
+
+   
+    

@@ -1,0 +1,17 @@
+1. 메인화면 html 파일을 만들기 위해서 
+    spring boot 프로젝트 아래의 src - main - webapp - WEB-INF - views에서 우클릭 - New - Other(사진 1번)에서 jsp 파일을 선택(사진 2번)하여  index.jsp 파일을 생성.(사진 3번)
+
+    index.jsp에서 기존 코드를 지우고 사용하고자 하는 html 코드를 작성(사진 4번에서는 w3의 bootstrap4의 Collapsing The Navigation Bar를 사용.)
+    controller 패키지를 생성 후, UserController, BoardController 클래스를 생성.(사진 5번)
+
+    사진 6번과 같이 BoardController 클래스에 코드를 작성하고 브라우저에 띄워보면 사진 7번과 같이 index.jsp에서 만든 네비게이션바를 확인할 수 있다.
+        (여기서 @GetMapping({"", "/"})의 {"", "/"}는 아무것도 붙이지 않았을 때와 /를 붙였을 때 이동하는 경로를 말한다.)
+
+    이제 네비게이션바를 간단하게 수정(html 파일과 같은 방식으로 index.jsp에서 수정)한 후, 다시 w3의 Basic Template에 Demo에 들어가(사진 8번) Footer 부분 우클릭 - 검사(사진 9번)
+    사진 10번 부분 copy하여 index.jsp 아래 부분에 붙여넣기(사진 11번)를 하면 사진 12번과 같이 Footer가 생긴 것을 볼 수 있다.
+
+    사진 16번과 같이 container 부분에 내가 원하는 html 코드를 넣어 ui를 꾸밀 수 있다.(이때 마진을 주고 싶다면 클래스명에 m-숫자 와 같이 사용하면 된다.)
+
+
+추가 : jsp 파일에서 코드 정렬을 위해 사진 13번에 들어가 사진 14번과 같이 keys에서 Default 값으로 변경(이전에 Default 값을 다른 것으로 변경한 적 있음)하여 ctrl+shift+f를 사용하여 코드를 정렬할 수 있음.
+    여기서 코드가 너무 길 경우 코드의 중간에 엔터가 들어갈 수 있는데 이 문제는 사진 13번에서 html에 들어가 Editor의 Line width의 설정을 바꿔주면 된다.(사진 15번)

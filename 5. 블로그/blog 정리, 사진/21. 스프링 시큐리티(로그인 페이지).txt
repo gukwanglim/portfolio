@@ -1,0 +1,40 @@
+1. 시큐리티의 사용을 위해 UserController.java에서 Mapping의 경로를 user가 아닌 auth로 수정.(사진 1번)
+    (인증 안 된 사용자들이 출입할 수  있는 경로를 /auth/**으로 허용, 주소가 /일 경우 index.jsp 허용, static 이하에 있는 /js/**, /css/**, /image/** 허용)
+
+2. UserApiController.java에서 Mapping의 경로를 api/user가 아닌 /auth/joinProc으로 수정.(사진 2번)
+
+3. UserService.jave에서 @Transactional을 이용한 로그인 방법은 사용하지 않음으로 주석처리(사진 3번)
+
+4. @Transactional을 이용한 로그인 방법을 사용하지 않음으로 UserRepositroy.java에서 User findByUsernameAndPassword(String username, String password);부분 주석처리(사진 4번)
+
+5. 로그인을 할 때, json 파일을 받아와서 하는 것이 아니므로(<script src="/js/user.js"></script>을 사용하지 않음) loginForm.jsp에서 login 버튼을 form 안으로 넣기.(사진 5번)
+    login 버튼이 form 안으로 들어갔기 때문에 <form action="#" methode="post">와 같이 작성(주소는 아직 미정)
+    json을 사용하는 것이 아니기 때문에 username, password에 name 값이 필요.(remember 버튼도 name 필요)
+
+6. header.jsp에서도 로그인, 회원가입의 경로에 /auth를 추가.(사진 6번)
+    글쓰기, 회원정보, 로그아웃의 경우에 /auth를 추가하지 않는 이유는 이 세 가지 동작은 로그인이 완료된 사람(인증이 완료된 사람)이 사용할 수 있는 것이기 때문이다.
+
+7. 시큐리티를 사용하기 때문에 user.js에서 login 방식을 주석처리(사진 7번)
+    또한, 회원가입은 /api/user에서 /auth/joinProc으로 변경.
+
+8. 시큐리티의 접근 설정을 위해서 config 패키지와 SecurityConfig 클래스를 새로 만든다.(사진 8번)
+    여기서는 WebSecurityConfigurerAdapter를 상속받아야 하는데 사진 9번과 같이 에러가 뜨는 것을 확인할 수 있다.
+    그 이유는 spring security 2.7이상에서 더 이상 WebSecurityConfigurerAdapter 사용을 권장하지 않는다고 한다.
+
+    이것을 해결하기 위해서는 SecurityFilterChain Bean 등록을 해야한다.(사진 10번)
+    하지만 throws Exception을 사용하는 순간 사진 11번과 같이 오류가 발생한다.
+    그 이유는 return 값이 존재하지 않았기 때문이었다.(사진 12번)
+
+    이렇게 해도 사진 13번과 같이 security를 update하라는 문구가 나온다.(사용하지 않음(해결 방법을 사용해도 달라지는 것 없음))
+
+9. 이제 http://localhost:8000로 들어가게 되면 사진 14번과 같이 액세스가 거부됨을 확인할 수 있다.
+    여기서 http://localhost:8000/auth/loginForm, http://localhost:8000/auth/joinForm으로 들어가게 되면 사진 15, 16번과 같이 들어가지는 것을 확인할 수 있다.
+
+    즉, 접근 제한이 걸린 상태에서는 블로그에 들어갈 수 없게 된 것이다.
+    이전에는 접근 제한이 걸려도 바로 로그인 창으로 들어갔었는데 시큐리티를 이용한 커스터마이징을 진행해서 이런 과정도 직접 설정해야 한다.
+
+    인증이 필요하게 되면 바로 로그인 페이지로 넘어가게 만들기 위해서는 .and()와 .loginPage()를 사용해야한다.(사진 17번)
+    (또한, js, css, image 파일의 접근을 위해 "/js/**", "/css/**", "/image/**"을 추가한다.)
+    이 과정을 완료하면 http://localhost:8000로 접근하여도 바로 http://localhost:8000/auth/loginForm이 나오게 된다.
+
+10. 추가로 csrf 토큰의 비활성화를 위하여 사진 18번과 같이 .csrf().disable()를 추가한다.(csrf에 대한 설명은 이후에 한다.)

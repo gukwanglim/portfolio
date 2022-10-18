@@ -1,0 +1,148 @@
+1. 이전 카카오 로그인을 이용하여 토큰을 받아온 상태에서 토큰 내부의 json 데이터를 오브젝트에 담는다.
+    사진 1번처럼 model 패키지에 OAuthToken 클래스를 생성.
+
+    카카오에서 받은 토큰(사진 5번)
+        - "access_token":"l29oGmhwkk9HuGHipob5VSCiTidzEm_n0rhvoORnCinI2AAAAYNvvega"
+        - "token_type":"bearer"
+        - "refresh_token":"5ITiGucxIaF4D8dAQLzW8xVPvFJC-3OJcptWaIP8CinI2AAAAYNvvegZ"
+        - "id_token":"eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJiZWQwNmU0OTQ1MWQ5Y2FlOTNkODI3NmY0MzI5YTFhZSIsInN1YiI6IjI0NDE2NDM1MDQiLCJhdXRoX3RpbWUiOjE2NjQwMjcwNjAsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwibmlja25hbWUiOiLqtazqtJHrprwiLCJleHAiOjE2NjQwNDg2NjAsImlhdCI6MTY2NDAyNzA2MCwiZW1haWwiOiJndWt3YW5nbGltQG5hdmVyLmNvbSJ9.lp5YgnPmIujvHpFawQxjCwCddkbI4SRO_jy20hUpK3aX0PVO7d-zcNak_QOkdvuMh4oALtLjrLmgK8u4I-jwy0TKdwaz9VUbfmbsIpc7num_2W6zfJs3xS6CKaQW7gn1JpDzhq_24yOihKv5kuiD0D3ktclgmb1WQ3FdS0y0HVBLQEWg7aiv75Sud0Kutc93SHOKIVJAvqDBIl3oSvigYxrKEAuqengLI1oY08Z16JPBSwbrlga89PsTlM5nlbgN-Thz7ki7tPu6TULmwQ-mt74PHC-IVVbUsqDZ23jnYj81FCS7Zi1sBfga1JlEYaZgJVAg3AuznybUBc7qeeQBuw"
+        - "expires_in":21599
+        - "scope":"account_email openid profile_nickname"
+        - "refresh_token_expires_in":5183999
+
+    영상에서는 id_token이 존재하지 않는다. 일단은 id_token을 작성하여 진행하고 문제가 발생하면 주석처리 하는 것으로 한다.
+        (강의 영상에 대해 궁금증을 질문하는 카페(https://cafe.naver.com/metacoding/1412)에서 보니 id_token을 작성하지 않으면 사진 17번과 같이 데이터를 받아오지 못한다고 한다.)
+
+    사진 2번과 같이 OAuthToken.java에 토큰을 정의하고 json 데이터를 처리하기 힘들기 때문에 UserController.java에서 json 데이터를 오브젝트에 담는다.
+        이때, OAuthToken.java에서 @Data를 사용하여 UserController.java에서 파싱을 하기 위해서이다.(Getter, Setter가 없기 때문에)
+
+2. 사진 3번과 같이 UserController.java에서 spring에 기본으로 내장 되어 있는 ObjectMapper 라이브러리를 사용하여 json 데이터를 오브젝트에 담을 수 있게 만든다.
+    (Gson, Json Simple, ObjeckMapper 등의 라이브러리가 존재하며 이렇게 하는 이유는 json 데이터를 java에서 처리하기 위해 java object로 변경한 것이다.)
+
+    코드에서 oauthToken은 objectMapper.readValue()를 사용하여 response.getBody()의 토큰값을 OAuthToken.class 안에 넣은 것이다.
+
+    이렇게하면 oauthToken.getAccess_token()을 사용하여 사진 4번처럼 카카오 엑세스 토큰을 출력할 수 있게 된다.
+        (여기서 받은 토큰값은 카카오 로그인을 수행한 후에 나오게 되는 토큰값인 access_token과 같다.(다만, 사진에서는 여러 번의 로그인을 시도하다보니 토큰값의 차이가 나는 사진을 그대로 이용했다.))
+
+3. 토큰을 통한 사용자 정보 조회를 위해서는 사진 6번과 같이 사용해야 한다.
+    - 요청 주소 : https://kapi.kakao.com/v2/user/me (GET/POST)
+    - 헤더 값 : Authorization: Bearer ${ACCESS_TOKEN}/KakaoAK ${APP_ADMIN_KEY} (여기서 Access Token을 사용하면 Bearer ${ACCESS_TOKEN}을, Admin Key를 사용하면 KakaoAK ${APP_ADMIN_KEY}을 사용한다.)
+                Content-type: application/x-www-form-urlencoded;charset=utf-8
+
+4. 요청하는 방식은 지금까지 계속 사용 중인 UserController.java의 kakaoCallback 메서드에 사용하지만, 원래는 이렇게 한 곳에 모두 사용하는 것은 좋지 않다.(지금은 공부하는 것으로 한 곳에 사용하여 보기 이해하기 편하게 만든다.)
+    (이전 시간에 토큰을 받기 위해 사용했던 코드를 가져와 변수명을 변경하여 사용한다.(HttpHeaders 오브젝트 생성, HttpHeaders와 HttpBody를 하나의 오브젝트에 담기, Http 요청하기(POST 방식)를 사용))
+
+    (사진 7번)
+    사용자 정보를 요청할 때에는 Body 데이터가 필요없기 때문에 params 코드는 삭제시킨다.
+    또한, kakaoProfileRequest2를 생성할 때(HttpHeaders와 HttpBody를 하나의 오브젝트에 담기 부분) 
+        params를 제외하고 headers2만 넣어도 문제가 생기지 않는 이유는 overloding이 되어있어 둘 중 하나만 넣어도 kakaoProfileRequest2가 만들어진다.
+
+    토큰을 받아올 때와 달리 사용자 정보를 받아오기 위해서는 header2에 두 가지를 넣어야하기 때문에(사진 6번 참조) 기존에 있던
+        headers2.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");은 그대로 남겨두고 
+        header2.add("Authorization", "Bearer " + oauthToken.getAccess_token());을 추가한다.
+
+    post 방식으로 http 요청을 하기 위해서 
+        rt2.exchange()를 사용한다.(자세한 설명은 이전 정리 내용 참조)
+
+5. 코드 작성이 끝나고 브라우저에 띄워보면 사진 8번과 같이 카카오의 리소스 서버에 있는 사용자의 정보를 가져온 것을 확인할 수 있다.
+
+6. 카카오 로그인한 사용자의 리소스 서버에 접근할 수 있는 권한을 받았다면 이 정보를 java object로 받기 위해서는 
+    https://www.jsonschema2pojo.org/에 접속하여 사진 9번과 같이 브라우저에 띄워진 사용자 정보를 붙여넣고, package는 model 패키지의 위치를 작성한다.
+    이제 아래의 Preview 버튼을 누르면 사진 10번과 같이 자동으로 java 코드가 작성된 것을 확인할 수 있다.
+
+    이 코드를 복사하여 넣어주면 되는데 이것은 model 패키지에 KakaoProfile 클래스를 생성하여 붙여넣는다.(사진 11번)
+        아마 코드를 복사하여 붙여넣어보면 수많은 에러가 보일텐데 필요 없는 부분은 삭제하고 순서에 맞게 정리하면 된다.(사진 12번)
+        또한, Getter, Setter를 사용하기 위해 @Data 어노테이션을 사용해줘야 한다.
+
+    KakaoProfile.java를 만든 것은 인가 받아 사용할 수 있는 리소스 서버 데이터를 java object로 사용할 수 있도록 준비한 것이다.
+        이 데이터를 java object로 사용하기 위해서는 위에서 했던 방식과 같이 ObjectMapper 라이브러리를 사용하여 만든다.(사진 13번)
+        데이터를 잘 가져오는지 확인하기 위해서 kakaoProfile.getId(), kakaoProfile.getKakaoAccount().getEmail()를 사용한다.
+
+    하지만 사진 14, 15번과 같이 오류가 발생했다.
+        그 이유는 KakaoProfile.java에서 connectedAt으로 작성되어 있는데 데이터에서는 connected_at의 형태로 사용되었기 때문이다.
+        이외에도 스네이크 표기법이 아닌 카멜 표기법으로 사용된 것을 모두 수정해줘야한다.
+        
+        이것들을 수정해주면(사진 16번) 사진 18번과 같이 id와 email을 받아올 수 있다.
+
+            ObjectMapper objectMapper2 = new ObjectMapper();
+            objectMapper2.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE); // 네이밍 전략 추가 (Snake -> Camel)
+            와 같이 네이밍 전략을 추가하면 문제가 해결된다고 하는데 코드의 통일성을 위해서 스네이크 표기법으로 통일시키는 것이 훨씬 좋다.
+
+7. 카카오로 블로그에 로그인을 할 경우, 카카오 유저 정보를 이용하여 바로 블로그 유저 정보로 활용하기 위해서 username과 email의 구상이 필요하다.(사진 19번)
+    (이때, 카카오의 유저 정보를 가져왔으니 굳이 카카오 password까지 요청할 필요가 없다고 판단.)
+    하지만, password가 없이 username과 email 만으로 로그인이 되는 것을 방지하기 위해 UUID를 사용하여 랜덤한 password를 제공 받는다.(이것은 사용하지 않을 password이다.)
+
+    username, email 구상
+        - username : kakaoProfile.getKakao_account().getEmail() + "_" + kakaoProfile.getId() (kakaoEmail_kakaoId의 형식으로 구상))
+        - email : kakaoProfile.getKakao_account().getEmail() (kakaoEmail을 그대로 사용.)
+
+    이제 spring boot app을 실행시키고 console창을 확인하면 구상한 username과 email을 확인할 수 있다.(사진 20번)
+
+8. application.yml 파일에서 사진 21번과 같이 cos: key: cos1234(임의로 정한 값이다.) 을 작성한다.
+    이것은 카카오로 로그인하는 사람들이 모두 사용하게 되는 password로 실제 서비를 제공할 때, 노출되어서는 안된다.(기존의 UUID를 삭제)
+        (사진 21번과 같이 cos:는 가장 왼편에 붙이고, key:는 두 칸을 띄운 상태로 사용)
+        (또한, UUID(중복되지 않는 특정한 값을 만들어내는 알고리즘)를 사용하지 않는 이유는 로그인을 할때마다 변경되기 때문에 로그인을 할 수 없게 된다.)
+
+    이렇게 application.yml에서 만든 것을 사용하는 방법은 사진 22번과 같이 @Value("${cos.key}")를 이용하여 불러올 수 있다.
+
+9. 현재 구현하고 싶은 기능은 카카오로 로그인을 했을 때, 카카오에서 넘겨받은 username과 email을 이용하여 자동으로 회원가입 및 로그인을 하는 것이다.
+    이를 위해서 이미 가입된 user를 찾아내는 회원찾기() 메서드가 필요하다.
+        메소드를 생성하는 것이므로 사진 24번과 같이 UserService.java에서 @Transactional(readOnly = true) 어노테이션을 이용하여 회원찾기() 메서드를 생성한다.
+            단순히 username의 유무를 판단하는 것으로 String username을 userRepositroy에서 findByUsername()을 이용하여 찾는다.
+            만약, username이 존재하지 않을 경우 .orElseGet()을 이용하여 new User를 만든다.
+                (여기서 평소와 같이 .orElseThrow()를 사용하지 않는 이유는 이 메서드는 오류를 찾는 것이기 때문에 username이 존재하지 않는다며 에러를 띄우면 로그인이 불가능하기 때문이다.)
+            즉, username이 존재한다면 user 변수에 username을, 존재하지 않는다면 비어있는 user를 넣게 된다.
+
+10. 이제 카카오 로그인을 진행시키기 위해 UserController.java로 돌아와 사진 23번과 같이 코드를 작성한다.
+    먼저, 위에서 구상했던 username, email과 application.yml에서 생성한 cosKey를 가지고 kakaoUser를 만든다.
+        (이때는 .builder()를 이용한다.)
+
+    kakaoUser에 담긴 정보 중에서 username이 이미 존재하는 사용자(가입자)인지 그렇지 않은 사용자(비가입자)인지를 알아내기 위해 회원찾기() 메서드를 이용한다.
+        (회원찾기() 메서드를 이용하기 위해서는 @Autowired를 이용하여 UserService를 연결시켜야 한다.)
+
+    if문을 이용하여 만약, 해당 사용자가 존재하지 않는다면 자동으로 회원가입을 진행한다.
+        (회원가입() 메서드도 이미 UserService에서 구현해놓은 것을 사용한다.)
+
+    회원 가입 완료, 혹은 기존 회원이라면 이전에 회원 정보 수정이 진행될 때, 곧바로 세션의 내용을 변경시키던 코드를 사용하여 강제 로그인을 진행시킨다.
+        (UserApiController.java에서 사용하던 코드로 사용하기 위해서는 @Autowired를 이용하여 AuthenticationManager를 연결시켜야 한다.)
+        코드가 진행되면 세션의 username은 kakaoUser.getUsername()으로, password는 kakaoUser.getPassword()으로 변경되어 로그인이 진행된다.
+            (여기서 kakaoUser.getUsername()는 위에서 구상했던 username, kakaoUser.getPassword()는 application.yml에서 만든 password)
+
+    마지막으로 로그인이 완료되면 / 주소로 이동하기 위해서 return "redirect:/";을 사용한다.
+        (redirect:/이 실행되기 위해서는 이 코드가 사용되는 kakaoCallback 함수에서 @ResponseBody를 지워야만 viewResolve를 호출하여 파일을 찾아간다.)
+
+11. 실행해보면 사진 25번과 같이 에러가 발생한다.
+    이것은 username의 길이가 너무 길어서 생기는 오류로 판단되며 User.java에서 username의 길이를 늘리고(사진 26번) 데이터 베이스를 초기화하고 다시 돌려보도록 한다.
+
+12. 다시 카카오 로그인을 진행하면 사진 27번과 같이 로그인이 완료되는 것을 볼 수 있고, 사진 28번과 같이 데이터 베이스에 kakaoUser의 정보로 회원가입 된 것을 확인할 수 있다.
+        (회원정보에 들어가서도 확인이 가능하다.(사진 29번)) 
+
+        이렇듯 회원정보의 수정이 가능하다는 말은 카카오의 email과 id를 알고 application.yml에서 만든 password를 안다면 일반 로그인도 가능하다.
+            때문에 카카오로 로그인한 상태에서 password를 변경한다면 일반 로그인은 가능하지만 카카오 로그인은 불가능하게 된다.
+            즉, 카카오 로그인을 한 상태에서는 pssword를 수정하지 못하게 만들어야 한다.
+
+13. 카카오 로그인에서 password 수정을 막기 위해서는 우선, 현재 사용자가 일반 로그인 회원인지 카카오 로그인 회원인지를 알아야 한다.
+    로그인을 구분하기 위해서는 User.java에 새로운 oauth 필드를 하나 추가해야 한다.(사진 30번)
+
+    이렇게 만들어진 oauth는 카카오 로그인일 경우 kakao를 받고, 만일, 다른 로그인을 할 수 있게 된다면 그에 해당하는 데이터를 가져야 한다.
+        현재 null 값을 허용(nullable = false을 사용하지 않음)하기 때문에 일반 로그인의 경우는 존재하지 않아도 문제가 없다.
+
+    이렇게만 만든다고 카카오 로그인으로 회원가입을 할 때 저절로 oauth 데이터가 만들어지지 않기 때문에 UserController.java에서 kakaoUser를 builder()로 생성할 때,
+        .oauth("kakao")를 사용하여 "kakao"가 들어갈 수 있도록 만든다.
+
+    이제 oauth 데이터는 카카오 로그인의 경우에 kakao를, 일반 회원가입의 경우에 null값을 가지게 된다.(사진 32번)
+
+    user table의 oauth 유무에 의해 password 수정을 막기 위해서는 사진 33번과 같이 <c:if>를 이용하여 principal.user.oauth가 비어있을 경우에만 password 수정란이 보여지게 만든다.(사진 34번)
+        (카카오 로그인의 안정성을 위해 email의 경우에도 readonly를 사용하여 수정하지 못하도록 만들었다.)
+
+14. 하지만 postman과 같은 프로그램을 사용하여 post 공격을 할 수 있다.
+    그러므로 서버실에서 막아주어야 한다.
+
+    그 방법은 사진 35번과 같이 UserService.java의 회원수정() 메서드에서 if구문을 사용하여 persistance의 oauth가 null이거나 비어있을 때만(equals("")) password, email 수정이 가능하게 된다.
+
+15. 이렇게 연동된 아이디는 카카오 개발자 센터의 '계정 설정'의(사진 36번) '카카오계정 정보 확인하기'에 들어가(사진 37번) '계정 이용' - '외부 서비스 전체보기'(사진 38번)에 들어가보면
+    사진 39번과 같이 blog 프로젝트가 연결된 것을 확인할 수 있다.
+
+    물론, 카카오와 연동된 모든 정보를 여기서 끊을 수 있다.
+        외부 서비스 전체보기에 있는 blog를 선택해보면 사진 40번과 같이 '연결 끊기' 버튼이 존재하며 연결을 끊은 후, blog 카카오 로그인을 다시 시도해보면 사진 41번과 같이 동의창이 뜨게 된다.
+            (이와 같이 동의창이 나오게 하기 위해서는 데이터 베이스의 카카오 로그인 데이터를 삭제시켜야 한다.)

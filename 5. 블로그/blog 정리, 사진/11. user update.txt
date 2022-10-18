@@ -1,0 +1,45 @@
+1. update의 경우도 DummycontrollerTest.java에서 작성된다.
+    update는 put 요청으로 @PutMapping 어노테이션은 사용한다.(사진 1번)
+        (사진 1번을 보면 @PutMapping("/dummy/user/{id}")와 @GetMapping("/dummy/user/{id}")의 주소가 겹치는 것처럼 보일 수 있는데 Get과 Put 호출으로 에러가 발생하지 않는다.)
+
+    사진 1번의 코드를 보면 @RequestBody User requestUser를 사용했다.
+        이것은 이전에 user table의 데이터를 받아올 때, 사용했던 User user의 방식이 아닌 json 형식의 데이터를 받아오는 것으로 @RequestBody 어노테이션을 사용한다.
+        (User user를 사용하면 폼태그(x-www-form-urlencoded)의 형식으로 받아오는 것이고, @RequestBody를 사용하면 raw의 json 형식으로 받아오는 것이다.)
+
+    데이터 베이스에 적힌 정보를 수정하기 전에 1번 id에 저장된 값을 확인하면 사진 2번과 같다.
+
+    사진 3번과 같이 http://localhost:8000/blog/dummy/user/1에서 raw의 json으로 password와 email을 다시 작성하며 send를 하게 되면 return 값이 null이므로 아무런 변화가 없어 보이지만
+        spring boot의 console창에서는 사진 4번과 같이 변경된 내용을 확인할 수 있다.
+
+        즉, @RequestBody로 인해 json 데이터 형태의 요청이 java object로 변환해서 받을 수 있게 해준 것이다.(MessageConvertor의 Jackson 라이브러리 동작)
+
+        물론, 현재의 코드는 update 된 내용을 데이터 베이스에 저장해주지 않는다.
+        이것을 저장하기 위해서는 이전에 배웠던 것과 같이 UserRepositroy.save(requestUser);를 사용한다.
+            (단, requestUser에는 password와 email만 존재하기 때문에 requestUser.setId(id);를 이용하여 id를 추가한다.)
+
+            하지만, 이 상태로 spirng boot app을 실행하고 postman에 send를 하게되면 사진 5번과 같이 에러가 뜨게 된다.
+            그 이유를 console창에서 찾아보면 username에는 null이 들어갈 수 없다고 나온다.(사진 6번)
+
+            이 부분의 문제점을 더 확인해보기 위해 임의의 username을 대입하고 spring boot app을 실행시키면 사진 7번과 같이 데이터 베이스에 들어가는 것을 확인할 수 있다.
+                즉, username만의 문제가 아닌 createData, role 등에서도 null이 들어가게 된다.
+
+                현재 상황의 UserRepositroy.save(requestUser);를 조금 더 자세히 설명하자면 
+                    원래 save는 insert 할 때 사용되는 것으로 save가 동작할 때, id 값을 넘겨주고, 그 id 값이 데이터 베이스에 존재한다면 update를 시켜준다.
+                    여기서 문제는 save로 받은 requestUser는 id와 password, email만 존재하기 때문에 다른 값들은 null로 update가 되는 것이다.
+
+                    때문에 update를 할 때는 save를 사용하지 않는다.
+
+                    그럼에도 save를 사용하는 방법은 
+                        사진 8번과 같이 User user를 불러오고(만약, id가 존재하지 않을 경우 발생할 에러에 대한 대비를 위해 orElseThrow()를 사용.) ser를 그대로 사용해야한다.
+
+                    save에 대해서 정리하자면 
+                        save 함수는 id를 전달하지 않으면 insert를 해주고
+                        save 함수는 id를 전달하면 해당 id에 대한 데이터가 있으면 update를 해주고
+                        save 함수는 id를 전달하면 해당 id에 대한 데이터가 없으면 insert를 해준다.
+
+        이제 save를 사용하지 않는 방법에 대해 알아보자(사진 9번)
+            User user를 사용하던 코드에서 save 함수를 제거하고, @Transactional 어노테이션을 사용하면 된다.
+
+            이 상태에서 데이터 베이스에 저장되어 있는(사진 7번) id 2번을 수정해보면(사진 10번) 사진 11번처럼 save 함수의 사용없이 데이터 베이스의 정보가 수정됨을 확인할 수 있다.
+
+            이러한 방식을 '더티 체킹'이라고 하며 

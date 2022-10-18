@@ -1,0 +1,35 @@
+1. detail.jsp에서 만든 삭제하기 버튼을 동작시키기 위해서는 사진 1번과 같이 board.js에서 삭제 버튼을 눌렀을 때, 동작하는 코드를 작성.
+    여기서 deleteById: function() {}을 사용하여 var id = $("#id").val();로 현재 페이지의 id를 받아오고 그렇게 받아온 id를 이용하여 ajax의 url을 설정한다.
+     (또한, ajax의 type은 DELET이 되어야한다.)
+
+2. board.js에서 삭제하기 버튼이 눌렸을 때, 그 동작을 제대로 완료하면 alert("삭제가 완료되었습니다.");가 동작하고, 실해하면 alert(JSON.stringify(error));가 동작하도록 만들었다.
+    이제는 삭제하기 버튼이 무슨 동작을 수행하는 것인지 알려주기 위해 사진 2번과 같이 BoardApiController.java에서 /api/board/{id} 주소를 DeleteMapping하고,
+        boardService.삭제하기(id);로 삭제하기()가 동작하게 만든다.,
+
+3. 삭제하기()가 동작하기 위해서 BoardService.java에 들어가 deleteById()를 이용하여 id가 포함된 데이터를 삭제시키도록 만든다.
+    (이전까지는 안 되어 있던 글상세보기()와 글목로()의 @Transactional(readOnly = true)는 select만 하기 때문에 적어준 것이다.)
+
+4. 코드를 작성한 후, 게시물을 삭제해보면 사진 4번과 같이 에러가 떴다. 이 오류는 board.js에서 DELETE가 아닌 DELET로 오타가 나서 생긴 오류이다.(사진 5번)
+    하지만 이것을 수정하여도 사진 6번과 같이 오류가 발생하는 것을 볼 수 있는데 이것은 timestamp의 문제로 현재 회원가입의 경우에는 createDate가 들어가지만 게시물을 작성하면 createDate가 null로 된다.
+
+    이 문제는 이전 9. 회원가입 테스트 에서 만났던 문제로 Board.java에서 timestamp가 정상동작 할 수 있도록 @EntityListeners(AuditingEntityListener.class)를 넣어주면(사진 7번) 된다.
+    이렇게하면 사진 8번과 같이 board table에서도 createDate가 정상적으로 들어가는 것을 확인할 수 있다.
+
+    ******
+    그럼에도 사진 6번과 같은 에러 메시지가 떴다.
+    
+    혹시나 하는 마음에 board table에 createDate를 삭제시키고 진행시켜도 똑같은 문제가 발생했다.
+
+    alert 창에 뜨는 에러는 timestamp를 찾지 못하는 것(404) 같은데 사진 9번에 뜨는 날짜와 사진 10번의 DB에서 뜨는 날짜가 차이가나서 문제가 발생하는 것 같다.
+    이 문제를 해결할 수 있는 방법은 찾기 못했기에 일단 진도를 나가기로 하자. 
+    ********
+
+    ^^^^ 문제 해결 ^^^^^^^
+    여기서 404 에러가 뜬 이유는 주소를 찾고 있지 못했기 때문이다.(사진 13번)
+    문제가 발생한 주소는 http://localhost:8000/api/board2으로 board.js에서 ajax를 사용할 때 url: "/api/board"+id,와 같이 board 바로 뒤에 id가 들어가게 코드가 작성되었다.
+    이것을 사진 url: "/api/board/"+id,으로 고쳐주면 사진 14번과 같이 삭제가 완료되고 index 페이지와 DB에서 삭제되는 것을 확인할 수 있다.(사진 15, 16번)
+
+5. 다른 사용자가 게시글을 수정, 삭제하지 못하게 만들기 위해서 사진 11번과 같이 <c:if> 구문을 사용해 자신이 작성한 게시글이 아니면 삭제하기 버튼이 안 보이도록 만든다.(사진 12번)
+
+
+     (index 페이지에 관련된 버튼 동작은 모두 BoardController.java에 작성, 상세 페이지에 관련된 버튼 동작은 BoardApiController.java에 작성.)

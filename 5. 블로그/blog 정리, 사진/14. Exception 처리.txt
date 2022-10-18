@@ -1,0 +1,27 @@
+1. 기존 코드에서는 예외가 발생했을 경우 사진 1번과 같은 브라우저가 뜨는 것을 확인할 수 있다. 이번에는 이런 에러 페이지를 만들어보자.
+    페이지를 만들기 이전에 spring boot에서 패키지의 상태를 보기 쉽게 만들기 위해 사진 2번과 같이 메뉴 버튼 - Package Presentation - Hierarchical로 설정을 변경하면 
+    사진 3번과 같이 보기 편하게 정렬이 되는 것을 볼 수 있다.
+
+    사진 4번과 같이 새로운 패키지와 클래스를 만든다.
+    사진 5번과 같이 코드를 작성.
+        @ControllerAdvice의 경우는 정의한 함수가 어디서든 동작할 수 있게 해주는 것이며 
+        @ExceptionHandler(value = IllegalArgumentException.class)를 사용하여 IllegalArgumentException가 동작하면 그 Exception에 대한 에러를
+        public String handleArgumemntException(IllegalArgumentException e)에서의 e 함수에 전달하여 return 값을 반환하게 된다.
+
+    이 상태에서 spring boot app을 실행하여 다시 존재하지 않는 id를 브러우저에 띄워보면 이전(사진 1번)과 달리 return 값으로 설정한 메시지가 뜨는 것을 확인할 수 있다.(사진 6번)
+
+
+* 무한 참조 방지하기
+    (1) Entity로 받고 Json직렬화 하기 전에 DTO 생성후 복사하기
+        BeanUtils.copyProperties(A,B) 
+
+    (2) 처음부터 DTO로 DB에서 받기
+
+    (3) @JsonIgnore
+
+    (4) @JsonIgnoreProperties({"board"})
+
+    (5) @JsonBackReference @JsonManagedReference 
+
+
+위 내용(무한 참조 방지하기)은 무척 중요하지만 백데이터가 있어야 하기 때문에 이후 블로그를 만들면서 내용을 설명

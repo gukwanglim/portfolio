@@ -1,0 +1,27 @@
+1. 현재 댓글을 작성하기 위해 받아오는 방식을 보자면
+    - content : board.js에서 content: $("#reply-content").val()를 사용.(사진 1번)
+    - boardId : board.js에서 let boardId = $("#boardId").val();를 사용.(hidden 노드 사용.)(사진 1번)
+    - userId : BoardApiController.java에선 @AuthenticationPrincipal PrincipalDetail principal을 사용.(사진 2번)
+
+    이런 식으로 따로따로 가져오게 되면 프로그램이 지저분해진다.(현재는 크지 않은 프로젝트이므로 복잡하지 않지만 프로젝트가 커지면 코드가 꼬일 가능성도 있다.)
+
+    때문에 데이터를 받을 때, 컨트롤러에서 dto를 만들어서 받는 것이 좋다.
+
+3. Dto를 만들어 댓글 작성에 필요한 데이터를 받기 위해서 dto 패키지에 ReplySaveRequestDto를 생성한다.(사진 3번)
+    코드는 사진 4번과 같이 int userId, int boardId, String content가 저장되어 있다.(@AllArgsConstructor, @NoArgsConstructor 사용)
+
+    이렇게 만든 ReplySaveRequestDto를 사용하는 방법은
+        사진 5번과 같이 BoardApiController.java에서 기존의 값 3개를 받는 것이 아닌 ReplySaveRequestDto replySaveRequestDto 하나만 받는 것이다.
+
+        물론 이렇게 사용하기 위해서는 detail.jsp에서 hidden을 한 번 더 사용하여 ${principal.user.id}를 받아오고(사진 6번),
+        사진 7번과 같이 data에 3개의 정보를 모두 담아준다.(이때 백틱(`) 사용 부분에서 ${boardId}이 아닌 ${data.boardId}를 사용해야한다.)
+
+        마지막으로 BoardService.java에서 댓글쓰기()에 ReplySaveRequestDto replySaveRequestDto를 담아주도록 한다.(사진 8번)
+            이때는 userId가 User user로 들어오는 것이 아니기 때문에 Board와 같이 영속화를 진행하여 .builder()를 사용해 reply에 넣어준다.
+            (content는 jsp에서 받아온 내용으로 replySaveRequestDto.getContent()를 이용해 넣는다.)
+
+        
+        이때, .builder()를 사용하지 않는 방법도 있다.
+            이 방법을 사용하기 위해서는 Reply.java에서 update() 메서드를 생성하여(사진 9번, set~을 사용하여 데이터 넣어주기) BoardService.java에서 new Reply()를 만들어 update()를 사용한다.(사진 10번)
+
+4. .builder()를 사용하는 방법도 나쁘지 않기에 그냥 .builder()를 사용하기로 하고 댓글이 잘 달리는지 확인(사진 11번)

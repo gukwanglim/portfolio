@@ -1,0 +1,42 @@
+1. spring :
+    스프링 프레임워크(Spring Framework)는 자바 플랫폼을 위한 오픈소스 애플리케이션 프레임워크로서 간단히 스프링(Spring)이라고도 불린다. 
+    동적인 웹 사이트를 개발하기 위한 여러 가지 서비스를 제공하고 있다. 대한민국 공공기관의 웹 서비스 개발 시 사용을 권장하고 있는 전자정부 표준프레임워크의 기반 기술로서 쓰이고 있다.
+
+ sprintboot :
+    스프링 프레임워크는 기능이 많은만큼 환경설정이 복잡한 편이다. 이에 어려움을 느끼는 사용자들을 위해 나온 것이 바로 스프링 부트다. 
+    스프링 부트는 스프링 프레임워크를 사용하기 위한 설정의 많은 부분을 자동화하여 사용자가 정말 편하게 스프링을 활용할 수 있도록 돕는다. 
+    스프링 부트 starter 디펜던시만 추가해주면 바로 API를 정의하고, 내장된 탐캣이나 제티로 웹 애플리케이션 서버를 실행할 수 있다. 
+    지어 스프링 홈페이지의 이니셜라이저를 사용하면 바로 실행 가능한 코드를 만들어준다. 
+    실행환경이나 의존성 관리 등의 인프라 관련 등은 신경쓸 필요 없이 바로 코딩을 시작하면 된다. 
+    그리고 바로 그것이 스프링의 키 포인트이다.
+
+ 차이점 : 
+    1) Embed Tomcat을 사용하기 때문에, (Spring Boot 내부에 Tomcat이 포함되어있다.) 따로 Tomcat을 설치하거나 매번 버전을 관리해 주어야 하는 수고로움을 덜어준다.
+    2) starter을 통한 dependency 자동화 :
+        아마 Spring 유저들이 가장 열광한 기능이 아닐까 싶다. 과거 Spring framework에서는 각각의 dependency들의 호환되는 버전을 일일이 맞추어 주어야 했고, 때문에 하나의 버전을 올리고자 하면 다른 dependeny에 까지 영향을 미쳐 version관리에 어려움이 많았다. 
+        하지만, 이제 starter가 대부분의 dependency를 관리해주기 때문에 이러한 걱정을 많이 덜게 되었다.
+    3) XML설정을 하지 않아도 된다.
+    4) jar file을 이용해 자바 옵션만으로 손쉽게 배포가 가능하다.(Spring Actuaor를 이용한 애플리케이션의 모니터링과 관리를 제공한다.)
+
+ 이번 프로젝트는 처음 spring을 접하는 것으로 여러 자동화 기능이 많이 있는 spring boot를 이용하게 되었다.
+
+2. 데이터 베이스는 MariaDB를 사용
+    무료로 배포되며 이전 프로젝트에서 사용했던 데이터 베이스를 이용하였다.
+
+3. STS(Spring Tool Suite, 스프링 프레임워크 기반 개발을 지원하는 도구이다.) 툴 사용
+    spring을 사용하기 위해서는 eclipse, vscode 등을 사용하여도 상관이 없지만, spring의 사용이 처음이기 때문에 강의 영상(https://www.youtube.com/watch?v=6bhF5o4gAOs&list=PL93mKxaRDidECgjOBjPgI3Dyo8ka6Ilqm&index=2)에서
+    진행하는 Spring Tools 4 for Eclipse를 사용했다.(사진 3번)
+
+    다운받은 jar 파일(사진 4번)을 실행하기 위해서 cmd 창에 사진 5번과 같이 작성하면 STS4를 설치할 수 있다.
+    설치된 파일은 편의성을 위해 tools 파일을 만들어 이동시킨다.(사진 6번)
+    STS4를 실행하면 workspace를 설정할 수 있다.(사진 7번)
+
+    인텔리 J - 키맵 세팅을 위해서 help - Eclipse Marketplace에 들어가(사진 8번) intellij 검색 후, install(사진 9번)
+
+    intellij를 설치한 이유는 intellij가 자바 스튜디오까지 사용할 수 있는 툴이기 때문에 나중에 intellij를 사용하게 될 때를 대비한 것이다.(key 설정이 intellij와 eclipse가 다르지만 이것을 intellij처럼 바꿀 수 있다.)
+    key 설정을 바꾸는 방법은 Window - Preference에 들어가(사진 10번) key를 검색하고 Keys에서 intellij IDE를 설정하면 된다.(사진 13번)
+    이럴 경우 eclipse에서는 기본적으로 java를 실행하는 단축키가 ctrl+f11 으로 설정되어 있지만, intellij와 같이 shift+f10 으로 변경할 수 있다.
+
+    utf-8 설정을 위해 Window - Preference에 들어가(사진 10번) enc를 검색하면 인코딩에 대한 모든 목록을 볼 수 있으며 Workspace의 Other이 UTF-8로 설정.(사진 11번)
+
+    추가적으로 다운받아 놓은 폰트가 있다면 Window - Preference에서 font를 검색하여 Colors and Fonts의 Basic에서 Text Font를 선택하면 다운받은 폰트를 사용할 수 있게 된다.(사진 12번)

@@ -1,0 +1,58 @@
+1. 글 목록은 메인 페이지(index.jsp)에서 볼 수 있어야 한다.
+    그렇기 때문에 메인 페이지를 띄워주는 BoardController.java에서 @Autowired를 이용하여 BoardService를 연결시켜주고, 메인 페이지로 넘어갈 때, 데이터를 가지고 가야한다.(사진 1번)
+    spring에서는 데이터를 가져갈 때, model이 하나 필요하다.
+        여기서 model.addAttribute()으로 boards를 key값으로 받고 boardService.글목록()을 데이터로 들고가기 때문에 글목록()을 만들어줘야 한다.
+
+    글목록() 메소드를 만들기 위해서 BoardService.java에 들어가 @Autowired로 BoardRepositroy를 연결하고 public List<Board> 글목록() {}을 만든다.(사진 2번)
+        여기서는 return boardRepositroy.findAll();을 이용하여 boardRepositroy에 있는 모든 내용을 찾아서 return하게 된다.
+
+    이제 주소를 /로 요쳥하게 되면 model.addAttribute("boards", boardService.글목록());으로 인해 model 안에 글목록을 모두 들고오게 된다.
+        이 글목록은 findAll()을 사용하여 모두 가져올 수 있고, 이것은 BoardRepositroy에 있는 메소드인데 BoardRepositroy는 JpaRepository를 상속받기 때문에 사용할 수 있다.(사진 3번)
+
+2. index 페이지에서 글목록을 뿌려야 한다.
+    이것을 위해서는 header.jsp에 jstl이 있어야하며 현재 header.jsp에는 jstl이 사용되고 있다.(사진 4번)
+
+    jstl을 이용하여 사진 5번과 같이 코드를 작성한다.
+
+    <c:forEach var="board" items="${boards}"> 변수명(var)은 board이며 items의 "${boards}" 부분은 request 정보가 넘어올 때, jstl에서 el 표현식이라는 뜻이다.(boards를 받을 수 있음.)
+        (이 boards는 BoardController.java에서 index라는 페이지로 boards를 날리게 된다.)
+
+        BoardController.java는 @RestController가 아닌 @Controller를 사용하기 때문에 return을 할 때, viewResolve가 작동하게 되는데 이것이 작동하면 (현재 코드에서) 해당 페이지(index)로 model의 정보를 들고 이동.
+            viewResolve는 return 값 index에 앞,뒤로 application.yml의 prefix: /WEB-INF/views/, suffix: .jsp를 붙여준다.
+
+            여기서 model은 jsp에서는 request 정보라고 생각하면 된다.
+            그런데 model에다가 데이터(collection)를 담으면 index까지 데이터를 끌고 이동한다.
+            collection을 가지고 index 페이지로 넘어가면 items에서 받을 수 있게 된다.
+                이렇게 받은 값은 한 건씩 board라는 변수에 집어 넣어서 뿌릴 수 있는데 뿌리는 방법은 ${board.title}를 사용하면 된다.
+
+                board 모델(table)은 tilte이라는 변수를 가지고 있으므로 ${board.title}를 사용하면 getTitle() 메소드가 호출된다.(사진 6번)
+                    (여기서 getTitle()로 가져올 수 있는 이유는 @Data 어노테이션 덕분이다.)
+
+    실제로 잘 작동하는지 http://localhost:8000/으로 들어가 확인하면 사진 7번과 같다.
+
+3. 글목록의 개수가 많아지면 페이지가 계속 아래로 내려가게 된다.
+    이럴때는 페이징을 하여 일정 개수 이상의 목록이 만들어지면 다음 페이지로 넘길 수 있게 만들 수 있다.
+
+    이렇게 하기 위해서는 BoardController.java에서 public String index()에 이전 9. 회원가입 테스트에서 만들었던 (사진 8번)
+        DummycontrollerTest.java의 @PageableDefault(size = 4, sort = "id", direction = Sort.Direction.DESC) Pageable pageable를 이용하여 pageable을 들고와 글목록()에 대입한다.
+        (한 페이지 한정된 수의 데이터를 올리던 코드)
+
+    이제 BoardService.java에 들어가 글목록()에 pageable을 받을 수 있게 해주면 페이징에 대해서 호출할 수 있다.
+        그런데 페이징에 대해서 호출을 하게 되면 return 타입이 List가 아니라 Page가 된다.(사진 9번)
+
+4. 위처럼 데이터 타입을 Page로 받게 되면 index.jsp에서 items="${boards}"와 같이 받을 수 없게 된다.
+    이것을 해결하기 위해서는 items="${boards.content}"와 같이 .content를 사용해주면 된다.
+        (items="${boards}"일 경우 사진 10번과 같이 에러 발생, items="${boards.content}"의 경우 사진 11번과 같이 문제없이 동작)
+
+    여러 개의 게시글을 작성하고 사진 12, 13, 14번과 같이 ?page=0, ?page=1, ?page=2를 사용해보면 최근 게시물 순서로 나오는 것을 볼 수 있다.
+
+5. 이제 페이지를 쉽게 찾을 수 있도록 만들기 위해 w3에서 BS4 Pagenation의 Disabled State 코드를 사용하면(사진 15번) 사진 16번과 같이 다음 페이지로 넘길 수 있는 버튼이 생긴다.
+    아직 다음, 이전 페이지로 넘길 수 없지만 사진 17번과 같이 ?page=${boards.number-1}를 사용하면 페이지가 넘어가도록 만들 수 있다.
+        (page number에 대한 정보가 boards 안에 담겨있고 그것을 .number를 사용하여 꺼낸 것이다.)
+        (추가로 justify-content-center은 ui를 가운데로 옮긴 것이다.)
+
+
+    여기서 문제점은 사진 19, 20번과 같이 게시물이 없어도 page가 계속 넘어간다는 사실이다.
+        이것을 해결하기 위해서는 <c:choose>를 이용하여 <c:when>, <c:otherwise>를 사용한 조건문을 만들고, .first, .last를 사용(첫 번재 페이지, 마지막 페이지의 인덱스)하여 disabled를 하는 것이다.(사진 18번)
+
+        이렇게하면 사진 21, 22번과 같이 첫 페이지에서는 Previous가, 마지막 페이지에서는 Next가 비활성화 되는 것을 볼 수 있다.

@@ -1,0 +1,11 @@
+1. 댓글 삭제 버튼을 구현하기 위해서 사진 1번과 같이 detail.jsp에서 onclick을 사용하여 index.replyDelete() 안에 두 개의 파라미터(board id, reply id)를 넣는다.
+    (댓글 한 칸의 공간도 ${reply.id}를 이용하여 번호를 준다.)
+
+2. 댓글 삭제 버튼이 동작하도록 만들기 위해 사진 2번과 같이 board.js에서 function()으로 boardId와 replyId를 받아온다.
+    (다른 버튼의 만들때와 달리 이미 detail.jsp에서 onclick을 사용하여 index.replyDelete()을 만들었기 때문에 위쪽에서 this.replyDelete()을 사용할 필요가 없다.)
+
+3. 이제 replyDelete의 url: `/api/board/${boardId}/reply/${replyId}`을 만들기 위해서 사진 3번과 같이 BoardApiController.java에 댓글삭제() 메서드를 불러온다.
+
+4. 댓글삭제() 메서드를 만들기 위해 사진 4번과 같이 BoardService.java에서 replyId를 가지고 table을 삭제시키는 코드를 작성한다.
+
+5. 실제로 댓글 삭제 버튼을 눌러보면 사진 5번과 같이 삭제됐다는 메시지가 뜨게 되며, 사진 6번과 같이 댓글이 삭제된 것을 확인할 수 있다.

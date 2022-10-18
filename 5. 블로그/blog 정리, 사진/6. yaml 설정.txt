@@ -1,0 +1,67 @@
+1. yaml이란?
+    spring에서 전반적인 설정을 다루는 파일.(기존에는 xml로 했지만 최근에는 yaml로 설정)
+    (참고 사이트 : https://www.inflearn.com/questions/16184)
+
+    xml > json > yaml 순서로 경량이다.
+    사진 1번을 보면 xml의 경우에는 <>를 사용하여 html과 같은 방식을 코드를 사용하고,
+    json의 경우에는 ""로 묶어서 사용지만,
+    yaml의 경우에는 단순하게 : 만을 사용한다.(여기서 중요한 점은 name: hello-pod 와 같이 'key: value'로 value는 한 칸 띄워서 사용해야한다.(이 규칙을 무시할 경우 파일이 작동하지 않음))
+        또한, json의 metadata는 {}를 사용한 반면 yaml은 {}를 사용하지 않고 들여쓰기(두 칸 띄어쓰기)를 사용한다.
+
+    root-context.xml : 한 번만 new를 사용하고 더이상 new를 사용할 필요가 없는(싱글톤) 즉, 객체가 하나만 있어도 되는 것들을 설정.
+    servlet-context.xml : 지속적으로 new를 사용해야하는 것들을 설정. 
+    하지만, spring에서는 application.yml 파일에서 모두 설정이 가능하다.
+
+2. application.yml 작성(사진 2번)
+
+    server:
+      port: 8000
+      servlet:
+        context-path: /blog
+        encoding:
+        charset: UTF-8
+        enabled: true
+        force: true
+
+            context-path란 내 포트 안에 들어가기 위한 진입점이다.
+            만약, 이런 코드를 적지 않는다면 port: 8080에 context-path: /와 같은 표현이다.
+            즉, 이처럼 port와 context-path를 설정했기 때문에 우리가 만들었던 get, post, put, delete 요청은 loaclhost:8000/blog/http/get 등으로 변경된 것이다.(사진 3번)
+
+    spring:
+      mvc:
+        view:
+          prefix: /WEB-INF/views/
+          suffix: .jsp
+
+            prefix란 Controller가 return 할 때, 앞에 붙여주는 경로명.
+            suffix이란 Controller가 return 할 때, 뒤에 붙여주는 경로명.
+
+            이 코드를 이해하기 위해서는 spring boot의 동작과정에 대한 이해가 필요한다.
+            이해를 돕기 위해서 새로운 class TempControllerTest를 만든다.(사진 4번)
+                (데이터가 아닌 파일을 return하기 위해서 @Controller를 사용한다.)
+            이렇게 작성하고 브라우저에 띄워보면 404 에러가 뜨는 것을 확인할 수 있다.(사진 5번)
+            또한, /WEB-INF/views/home.html.jsp 파일을 찾지 못한다는 메시지가 보인다.
+            spring의 console창을 확인해보면 tempHome()가 출력이 되어 public String tempHome()이 제대로 동작하고 있다는 사실을 보여준다.(사진 6번)
+
+            이렇게 /WEB-INF/views/home.html.jsp를 찾는 이유가 yml 파일에 prefix: /WEB-INF/views/로 설정을 했기 때문이다.
+            그렇다면 yml 파일의 mvc 부분을 주석처리하고 src/main/resources/static 안에 home.html(단순히 home.html 문자를 출력)를 만들고 다시 브라우저에 띄우면 경로 자체를 찾지 못한다.(사진 7번)
+            이유는 @Controller 때문인데 이 어노테이션의 메소드는 파일을 return하게 된다.
+                여기서 파일리턴 기본경로는 src/main/resources/static 이지만, TempControllerTest의 return 값은 "home.html"이기에 src/main/resources/statichome.html 라는 경로를 찾게 된다.
+                즉, return "/home.html" 를 사용해야 src/main/resources/static/home.html 라는 경로가 들어가게 된다.(사진 10번)
+                    (spring boot에서 html 파일을 읽지 못하는 경우가 있다. 이것은 Help - Eclipse MarketPlace(사진 8번)에서 java and web을 검색하여 다운받으면 된다.(사진 9번))
+
+                (@RestController의 경우는 return에 적힌 문자를 그대로 반환했다면, @Controller는 해당경로 이하에 있는 파일을 반환하게 된다.)
+
+            하지만 우리가 할 것은 html 파일을 return 하는 것이 아닌 jsp 파일을 return 할 것이다.
+            그런데 spring boot는 기본적으로 jsp를 지원하지 않는다.(jsp 파일을 return하여도 spring boot가 정상적으로 작동하지 않는다.)
+            그렇기에 필요한 것이 
+                첫 번째로는 pom.xml의 JSP 탬플릿 엔진 부분(사진 11번)이고,
+                두 번째로는 파일을 리턴하는 기본 경로가 src/main/resources/static인데 이곳에 JSP 파일을 놓으면 제대로 인식하지 못하기 때문에(왜냐하면 이 static 파일이 정적 파일들을 넣는 경로이기 때문이다.)
+                    (쉽게 말해, static 이하에는 브라우저가 인식할 수 있는 파일(html, png 등의 파일)만 인식할 수 있다.(JSP는 동적인 파일이다.(java 파일, 컴파일이 이뤄져야하는 파일)))
+                    때문에 경로를 프로젝트 파일 바로 아래에 있는 src/main으로 변경해줘야 한다.(사진 12번) 
+
+                    이 경로 안에 webapp/WEB-INF/views으로 새로운 폴더를 만들고 JSP 파일(JSP 파일을 만드는 법은 html 파일 만드는 것과 같다.(사진 15번))을 넣어 준다.(사진 16번)
+                    이젠 TempControllerTest에서 JSP를 호출하는 어노테이션을 만들고 (사진 17번) application.yml에서 주석처리한 mvc 부분을 풀어주면 사진 18번과 같이 나오게 된다.
+                    (prefix가 /로 끝나고 suffix가 .jsp 이므로 return에 /와 .jsp는 넣지 않는다.(/ 같은 경우는 포함되어도 큰 문제 없이 반환해주지만 .jsp 같은 경우는 불가능하다.))
+
+                즉, 위 두 과정을 거치게 되면 톰켓이 java 파일임을 확인하고 컴파일한 것이다.

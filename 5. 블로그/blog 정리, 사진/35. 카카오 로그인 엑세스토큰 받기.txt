@@ -1,0 +1,69 @@
+1. 카카오 개발자 센터 - 문서 - 카카오 로그인(REST API)에서 전체적인 동작을 확인 가능(사진 1번, https://developers.kakao.com/docs/latest/ko/kakaologin/rest-api)
+
+2. 카카오 로그인(REST API)에서 리소스 다운로드를 클릭하면(사진 2번) 사진 3번과 같이 버튼을 다운 받을 수 있다.(완성형, 축약형 중 선택)
+    다운받은 버튼 이미지는 src/main/resources/static 안에 image 폴더를 생성하여 저장.(사진 4번)
+
+3. login.jsp에서 사진 5번과 같이 <a>를 이용하여 버튼 생성.(사진 6번으로 확인)
+
+4. 버튼의 주소는 카카오 로그인(REST API)의 코드를 사용.(사진 7번)
+    (로그인 요청 주소 : https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code HTTP/1.1) (Get 방식)
+    여기서 
+        - ${REST_API_KEY}는 클라이언트 키(bed06e49451d9cae93d8276f4329a1ae)를 사용.
+        - ${REDIRECT_URI}는 콜백 주소(http://localhost:8000/auth/kakao/callback)를 사용.
+
+    위의 주소를 그대로 login.jsp의 카카오 버튼 # 부분에 넣음.(사진 8번)
+
+    주소를 넣으면 카카오 로그인 버튼을 눌렀을 때, 사진 9번과 같이 동의창이 나타나는 것을 볼 수 있음.
+        만약, 카카오에 로그아웃이 되어 있다면 로그인 창이 뜨는 것을 확인할 수 있다.(사진 10번)
+
+5. 동의를 진행하면 사진 11번과 같이 
+    http://localhost:8000/auth/kakao/callback?code=Ecll3qpQOUqK053DjeGz5-bcNRiYfYbz6D8OZoSXq56khIXG6yjOdScQS9cvtkJi6zr8kAopyWAAAAGDa1K4nA의 주소로 이동하는 것을 볼 수 있다.
+
+    여기서 code를 받았다는 말은 인증이 됐다는 뜻이다.
+
+6. 현재 http://localhost:8000/auth/kakao/callback 주소에 대한 controller가 없기 때문에 404 페이지가 떴다.
+    사진 12번과 같이 UserController.java에 /auth/kakao/callback을 @GetMapping 시키면 (여기서 데이터 타입 앞에 @ResponseBody 어노테이션을 사용하게 되면 데이터를 return 해주는 컨트롤러 함수가 된다.)
+    사진 13번과 같이 잘 연결된 것을 확인할 수 있다.
+
+    이제 카카오에서 넘겨준 code 값을 받기 위해 다시 UserController.java로 돌아가 String code를 사용하게 되면(사진 14번) 사진 15번과 같이 code를 출력할 수 있다.
+
+7. code 인증을 받았으니까 Access Token을 부여받아 카카오 리소스 서버에 등록된 현재 로그인을 한 사람의 개인정보를 응답받는다.
+    Access Token을 부여받을 코드 또한 카카오 로그인(REST API)에 있다.(사진 16번)
+
+    토큰 발급 요청 주소는 https://kauth.kakao.com/oauth/token 이다.(Post 방식) -> http Body에 데이터를 전달하기 때문에 주소 뒤에 정보가 없다.
+    여기서 application/x-www-form-urlencoded;charset=utf-8 방식으로 데이터를 받아와야한다.
+        MIME type이 application/x-www-form-urlencoded;charset=utf-8이므로 key=value 형식으로 데이터를 전달받아야 한다.
+
+    받아와야할 데이터는 사진 17번과 같다.
+        - grant_type = authorization_code
+        - client_id = bed06e49451d9cae93d8276f4329a1ae
+        - redirect_uri = http://localhost:8000/auth/kakao/callback
+        - code = {동적임(알 수 없음. 응답받은 코드를 작성)}
+
+    이렇게 4가지만 전달하기로 한다.
+
+8. 카카오에 데이터를 전달하고 토큰을 받아오기 위해서는 사진 18번과 같이 코드를 작성해야한다.
+        카카오 쪽에 POST 방식으로 key=value 데이터를 요청하기 위해서는 RestTemplate 라이브러리가 필요하다.
+            (이외에 Retrofit2, OkHttp 등등의 라이브러리가 존재한다.)
+
+        HttpHeaders 오브젝트 생성하여 현재 전송한 http Body 데이터가 key=value 형태라는 것을 알려주기 위해 
+            headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");를 사용한다.
+
+        HttpBody 오브젝트 생성하여 Body에 담길 데이터(사진 17번)을 묶어서 params에 담는다.
+            (이때 value 값은 변수화를 시켜서 넣는 것이 좋지만 현재는 그냥 넣는다.)
+
+        HttpHeaders와 HttpBody를 하나의 오브젝트에 담기위해 HttpEntity를 사용하여 kakaoTokenRequest에 담는다.
+            이때 kakaoTokenRequest는 headers 데이터와 Body 데이터(params에 들어있는 데이터)를 가지고 있는 Entity가 된다.
+            (이렇게 HttpHeaders와 HttpBody를 하나의 오브젝트에 담는 이유는 아래에서 사용할 exchange가 HttpEntity 오브젝트를 받게 되어 있기 때문이다.)
+
+        post 방식으로 Http 요청하기위해 ResponseEntity를 사용하여 response 변수의 응답을 받는다.
+            rt.exchange()에는 토큰 발급 요청 주소(http://localhost:8000/auth/kakao/callback)를 넣고, 요청 메소드가 post임을 알려주는 HttpMethod.POST와
+                http header와 Body를 가지고 있는 kakaoTokenRequest, 응답을 받을 타입의 종류인 String.class를 넣는다.(즉, response의 응답은 String)
+
+        토큰 요청에 대한 응답은 사진 19번과 같이 확인할 수 있다.
+
+9. 여기서 토큰 응답값의 {} 부분을 가지고 http://json.parser.online.fr/ (json parser)로 넘어가 붙여넣어보면 Access Token을 받은 사실을 확인할 수 있다.
+    이 토큰을 이용하여 카카오 로그인한 사용자의 리소스 서버에 접근할 수 있는 권한이 생긴 것이다.
+
+    물론, 토큰만 뽑아내서 볼 수 있다.
+        방법은 .getBody()를 사용하는 것으로(사진 21번) 사진 22번과 같이 정확히 토큰의 값만 반환하는 것을 확인할 수 있다. 

@@ -1,0 +1,46 @@
+1. 댓글 작성을 구현하기 위해 사진 1번과 같이 detail.java에서 댓글 작성창과 버튼에 id를 넣어준다.
+    또한, 어떤 게시물에 작성된 댓글인지 확인하기 위해 <form>으로 감싸 <input>을 이용하여 hidden type으로 board.id를 넣어준다.
+        (<form> 안에 들어가면 <button>의 경우는 type을 button으로 지정해줘야 버튼을 눌렀을 때, console창에서 반응을 볼 수 있다.)
+    이제 등록 버튼을 누르면 작성해 놓은 내용을 가지고 이동하도록 구상한다. 
+
+2. 등록 버튼을 동작하게 만들기 위해서 
+    board.js에서 등록 버튼을 눌렀을 때, 동작하는 함수를 연결하고 content을 이용하여 저장하도록 만든다.(사진 2번)
+    여기에 let boardId를 불러와 게시물의 id를 알 수 있도록 한다.
+
+        이때, url을 살펴보면 `/api/board/${boardId}/reply`와 같이 사용된 것을 볼 수 있는데, 이것은 키패드의 1번 왼쪽에 있는 `를 사용하여 js 파일에서 java를 사용할 수 있게 만드는 것이다.
+        여기서 사용된 `을 백틱이라고 하며 댓글 작성을 마치고 띄워주는 주소 location.href에도 `/board/${boardId}`를 사용하여 상세보기 페이지로 이동하도록 만든다.
+
+            이때, data에 boardId가 $("#boardId").val()를 이용하여 담기게 되는데 아래에서 ${data.boardId}을 이용하여 id를 받아오기 때문에 넣어주지 않아도 상관없다.
+                (그래도 이런 식으로 가져올 수 있다는 사실을 알기 위해 일단 적어 놓음.)
+
+3. 이제 /api/board/${data.boardId}/reply 페이지를 만들기 위해서 BoardApiController.java로 이동하여 사진 3번과 같이 코드를 작성한다.
+    여기서는 @PathVariable를 이용하여 boardId를, @RequestBody를 이용하여 reply를, @AuthenticationPrincipal를 이용하여 principal를 불러와 user의 정보를 가져올 수 있도록 만든다.
+
+4. BoardApiController.java의 replySave 메서드에서 사용한 댓글쓰기() 함수를 만들기 위해 사진 4번과 같이 BoardService.java에 코드를 작성한다.
+    (솔직히 이 부분이 잘 이해되진 않는다.)
+
+    댓글쓰기()에 필요한 정보는 댓글을 작성한 user의 id, 댓글이 작성된 board의 id, 작성된 댓글의 content가 필요하다.
+        여기서 reply의 content는 board.js에서 data 변수에 담겨있다. 우선 이것이 어느 순간에 사용된 것인지 이해가 부족하다.
+        다음으로 작성한 user의 id가 필요한데, 코드를 보면 .setUser(user)를 이용하여 넣게 된다. 여기서 user는 User user를 사용한 것인데 이것만 사용하면 id를 가져올 수 있는 건가?
+            (이 부분은 board에 내용을 작성하는 글쓰기() 부분에서도 똑같이 사용되었으니까 나중에 찾아봐야겠다.)
+
+            대충 이해한대로 작성해보고자 한다.
+                - BoardService.java에서의 댓글쓰기() 부분은 말 그대로 댓글쓰기() 함수를 만든 것이다.
+                    여기서 댓글쓰기()는 User user, int boardId, Reply requestReply 데이터를 받아 save하는 역할이다.
+
+                - 그렇기에 BoardApiController.java에서 댓글쓰기()는 BoardService.java에서 만든 함수를 사용하는 것이다.
+                    즉, User user의 위치에 principal.getUser()를 받았고, Reply requestReply 위치에는 reply를 받았다.
+                    다만, 아직도 principal.getUser()가 user의 id만을 받아온다는 것에 대한 이해가 부족하다.
+
+                    대신 reply의 경우는 board.js에서 console.log()를 찍어보면 사진 8번과 같이 {content: 내용}의 형태로 받아오기 때문에 곧바로 reply table의 content 컬럼에 들어가는 것이다.
+
+                - 사진 8번과 같은 형태로 데이터가 들어간다는 사실을 알았다면, requestReply.setUser(user);로 받은 데이터는 {userId: 1}의 형태이고,
+                    requestReply.setBoard(board);로 받은 데이터는 {boardId: 1}의 형태라는 말이 될 것이다.
+
+                    이 사실을 바탕으로 BoardApiController.java에서 받은 형태인 @AuthenticationPrincipal PrincipalDetail principal을 확인해보면
+                        사진 9번과 같이 PrincipalDetail.java에서 getPassowrd와 같은 형태로 존재해야하는데 getUser는 존재하지 않고 콤포지션(class가 객체를 품고 있는 것)의 형태로 User user를 가지고 있다.
+                        이것을 사용하면 아마 {userId: 1}의 형태를 반환하는 것 같다.
+                        
+
+5. 이제 댓글을 작성해보면 사진 5번과 같이 완료되며 댓글이 올라간 것을 확인할 수 있다.(사진 6번)
+    추가로 데이터 베이스에도 값이 저장된 것을 확인(사진 7번)

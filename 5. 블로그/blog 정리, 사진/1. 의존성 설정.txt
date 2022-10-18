@@ -1,0 +1,57 @@
+1. spring 프로젝트를 만들기 위해 STS4를 실행시킨 후, File - New - Project(사진 1번)에서 Spring Boot - Spring Start Project(사진 2번)을 들어가서 Name, Type, Packageing 등등 필요한 내용을 작성한다.(사진 3번)
+ 다음으로 넘어가면 의존성을 설정할 수 있는 창이 나오는데 설정은 다음과 같다.(사진 4, 5, 6, 7번)
+ 이런 식으로 설정하면 오른쪽편에 무엇을 체크했는지 한 눈에 볼 수 있다.(사진 8번)
+
+ 다음 페이지로 넘어가보면 이전에 설정했던 것이 자동으로 정의되는 것을 볼 수 있다.(사진 9번)
+
+ 사진 6번에 나오는 OAuth2 Client는 카카오톡 로그인에 대한 설정이지만, 여기서는 직접 코드로 작성할 예정
+
+ 설정이 완료되면 프로젝트가 만들어진다.(사진 10번)
+
+ 1-1. Spring Boot DevTools
+    프로젝트가 변경이 될 때, 자동으로 재시작할 수 있게 만들어주는 라이브러리.
+
+ 1-2. Lombok
+    생성자를 자동으로 만들어주는 라이브러리.
+
+ 1-3. Spring Data JPA
+    데이터 베이스를 JPA를 통해 만드는데 필요한 라이브러리.
+
+ 1-4. MariaDB Driver
+    사용할 데이터 베이스를 설정.
+
+ 1-5. Spring Security
+    spring을 통해서 개발을 할 때, 보안에 대한 라이브러리를 제공.(어려움)
+
+ 1-6. Spring Web
+    spring을 사용할 때, 어노테이션을 많이 사용하게 된다. 이것을 사용하기 위해서는 Spring Web이 필요한다.
+    WEB MVC를 사용하여 웹 애플리케이션을 만드는데 필요한 스프링부트의 기본적인 요소를 가짐.
+    내장형 컨테이너로 톰캣을 기본탑재하고 있다. 
+
+
+2. 더 추가해야 하는 것
+
+    <!-- 시큐리티 태그 라이브러리 -->
+    <dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-taglibs</artifactId>
+    </dependency>
+
+    <!-- JSP 템플릿 엔진 -->
+    <dependency>
+    <groupId>org.apache.tomcat.embed</groupId>
+    <artifactId>tomcat-embed-jasper</artifactId>
+    </dependency>
+
+    <!-- JSTL -->
+    <dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>jstl</artifactId>
+    </dependency>
+
+    위의 코드를 blog 프로젝트의 pom.xml 파일의 <dependencies> 부분(사진 11번)에 추가한다.(사진 12번)
+    이 과정을 마치고 저장을 하게 되면 코드에 적혀있는 라이브러리를 자동으로 다운(다운과 빌드가 동시 작동)받게 된다.
+    (다운받은 라이브러리는 Maven Dependencies에서 확인할 수 있다.)
+
+    일단은 사용하기 까다로운 라이브러리를 주석처리한다.(사진 14번)
+    주석처리를 한 상태에서 저장하면 Maven Dependencies에서 그 라이브러리가 사라지는 것을 확인할 수 있다.

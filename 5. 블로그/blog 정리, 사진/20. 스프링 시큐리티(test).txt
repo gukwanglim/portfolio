@@ -1,0 +1,31 @@
+1. 스프링 시큐리티를 사용하기에 앞서 UserController.java에서 Mapping된 주소에서 user를 제외한다.(사진 1번)
+    기존 /blog를 통해 가는 경로도 지우기 위해 application.yml에서 context-path의 경로도 수정한다.(사진 2번)
+    header.jsp에서도 주소 변경이 필요하다.(사진 3번, 글쓰기, 회원정보, 로그아웃 부분도 미리 변경)
+    (버튼을 눌렀을 때에도 주소가 들어 있으니 user.js, joinForm.jsp, loginForm.jsp에서 blog 경로를 모두 지워야한다.)
+
+    이런 식으로 주소를 변경하는 이유는 권한 때문이다.(자세한 이유는 나중에 설명)
+
+2. 스프링 시큐리티를 사용하기 위해서 pom.xml에 spring-security-taglibs를 작성.(사진 4번, 시큐리티 태그 라이브러리, 그리 중요한 내용은 아님)
+    대신 사진 5번의 spring-boot-starter-security는 시큐리티를 사용하기 위해 필수로 작성해야한다.
+
+3. 스프링 시큐리티를 사용하기 위해 UserApiController.java의 login 부분 주석처리(사진 6번)
+    이 상태로 spring boot app을 실행하면 메인 페이지로 들어가려고 해도 사진 7번과 같이 http://localhost:8000/login 페이지가 뜨게 된다.
+    즉, 스프링 시큐리티가 동작하는 상태에서는 무조건 로그인이 필수가 된다.
+        이때 id는 user, password는 console 창에 나오는 password(사진 8번)을 사용해야한다.
+
+        id와 password를 입력하면 사진 9번과 같이 메인 페이지에 접근할 수 있게 된다. (이때부터 session이 자동으로 생성된다.)
+
+        때문에 header.jsp에서 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>를 작성하여 시큐리티 태그 라이브러리를 사용할 수 있게 만들고,
+            <sec:authorize access="isAuthenticated()">을 추가하여 인증이 되었는지를 확인할 수 있게 만든다.(사진 10번)
+        (https://www.baeldung.com/spring-security-taglibs)
+
+        이렇게하면 시큐리티 로그인을 했을 경우 사진 11번과 같이 alert이 뜨는 것을 확인할 수 있다.
+
+        alert가 제대로 작동하는 것을 확인했으면 
+            <sec:authentication property="principal" var="principal"/>를 사용하여 <c:when test="${empty sessionScope.principal}"> 대신에 <c:when test="${empty principal}">를 사용
+            이것은 현재 user object에 접근할 수 있게 해준다.(사진 12번)
+
+        여기서 principal의 내용을 보고 싶다면 <h1>${principal}</h1>을 작성하여(사진 13번) 메인 페이지에 들어가보면 사진 14번과 같이 내용을 확인할 수 있다.
+        즉, 시큐리티를 사용하여 id와 password를 입력하고 접속하게 되면 spring은 자동으로 session을 만들고 저장을 하게 되는데 그 값이 바로 principal에 저장되는 것이다.
+
+        
