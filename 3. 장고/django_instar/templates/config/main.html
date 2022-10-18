@@ -1,0 +1,435 @@
+<!doctype html>
+
+{% load static %}
+
+<html lang="ko">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+  <!-- 구글 머티리얼 아이콘 불러오기 -->
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  <!-- jquery 사용하기 위해 -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+  <title>outstargram</title>
+</head>
+
+<body>   
+  <!-- 상단 내비게이션 바 -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light" style="width: 100%;height: 50px;position: fixed;  z-index: 500;" >
+    <div class="container-fluid" style="justify-content: space-between; flex-wrap: nowrap; min-width: 1000px">
+      <a class="navbar-brand" href="/"><img style="width: 100px" src="https://www.instagram.com/static/images/web/mobile_nav_type_logo-2x.png/1b47f9d0e595.png"></a>
+      <input class="form-control me-2" style="width: 400px" type="search" placeholder="Search" aria-label="Search">
+      <div style="display: flex">
+        <a href="/" style="color: black"><span class="material-icons" style="padding-right: 10px"> home</span></a>
+        <span class="material-icons" style="padding-right: 10px">send</span>
+        <span id="add_feed" class="material-icons-outlined" style="padding-right: 10px; cursor: pointer;">add_box</span>
+        <span class="material-icons-outlined" style="padding-right: 10px">explore</span>
+        <span class="material-icons-outlined" style="padding-right: 10px">favorite_border</span>
+        
+        {% if user.id %}
+        <div class="dropdown" style="width: 30px; height: 30px;">
+          <a href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+              <div style="width: 30px; height: 30px">
+                  <img class="profile_box" style="width: 25px; height: 25px;" src="{% get_media_prefix %}{{ user.profile_image }}">
+              </div>
+          </a>
+          <ul class="dropdown-menu" style="left:-158px;" aria-labelledby="dropdownMenuLink">
+              <li><a class="dropdown-item" href="/content/profile">프로필</a></li>
+              <li>
+                  <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" href="/user/logout">로그아웃</a></li>
+          </ul>
+        </div>
+        {% else %}
+        <a href="user/login" style="color: black"><span class="material-icons">login</span></a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- 바디 영역 -->
+
+  <!-- 메인 화면 -->
+  <div class="main_body">
+    <div class="left_body">
+      {% for feed in feed_list %}
+      <div class="border feed_box">
+        <div class="feed_name">
+          <div class="profile_box" style="display:flex;">
+            <img class="profile_box" src="{% get_media_prefix %}{{ feed.profile_image }}">
+          </div>
+          <span class="feed_name_txt"> {{ feed.nickname }} </span>
+          <div style="width:430px"></div>
+          {% if feed.nickname == user.nickname %}
+          <div class="dropdown" style="width: 30px; height: 30px;">
+            <a href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                <div style="width: 30px; height: 30px">
+                  <span class="material-icons" style="color: black;">more_horiz</span>
+                </div>
+            </a>
+  
+            <ul class="dropdown-menu" style="left:-158px;" aria-labelledby="dropdownMenuLink">
+                <li><a class="dropdown-item" href="/content/profile">수정</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="feed_delete dropdown-item" onclick="deleteFeed('{{ feed.id }}');">삭제</a></li>
+            </ul>
+          </div>
+          {% else %}
+          <div class="dropdown" style="width: 30px; height: 30px;">
+            <a href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                <div style="width: 30px; height: 30px">
+                  <span class="material-icons" style="color: black;">more_horiz</span>
+                </div>
+            </a>
+  
+            <ul class="dropdown-menu" style="left:-158px;" aria-labelledby="dropdownMenuLink">
+                <li><a class="dropdown-item" href="/content/profile">숨기기</a></li>
+          </div>
+          {% endif %}
+          
+        </div>
+        <img class="feed_img" src="{% get_media_prefix %}{{ feed.image }}">
+        <div class="feed_icon">
+          <div>
+            <span id="favorite_{{ feed.id }}" feed_id="{{ feed.id }}" user="{{ user }}" class="favorite  material-icons-outlined" style="color: red; cursor: pointer;">{% if feed.is_liked %}favorite{% else %}favorite_border{% endif %}</span>
+            <span class="material-icons-outlined">mode_comment</span>
+            <span class="material-icons-outlined">send</span>
+          </div>
+          <div>
+            <span id="bookmark_{{ feed.id }}" feed_id="{{ feed.id }}" user="{{ user }}" class="bookmark material-icons-outlined" style="cursor: pointer">{% if feed.is_marked %}bookmark{% else %}bookmark_border{% endif %}</span>
+          </div>
+        </div>
+        <div class="feed_like">
+          <p class="feed_txt"> <b>좋아요 {{ feed.like_count }}개</b></p>
+        </div>
+        <div class="feed_content">
+          <p class="feed_txt"> <b> {{ feed.nickname }} </b> {{ feed.content }}</p>
+        </div>
+
+        <div id="reply_list_{{ feed.id }}">
+          {% for reply in feed.reply_list %}
+          <div class="feed_reply">
+            <div>
+              <span class="feed_txt"><b>{{ reply.nickname }}</b> {{ reply.reply_content }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div style="display:flex; flex-direction: row; align-items: center; border-top: solid 1px #dee2e6 ">
+          <input id="reply_{{ feed.id }}" type="text" class="form-control" style="box-shadow: none; border: none; outline: none; font-size: 15px;" placeholder="댓글 달기..">
+          <div feed_id="{{ feed.id }}" user="{{ user }}" class="upload_reply" style="width: 50px;color: cornflowerblue; font-weight: bold">게시</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- 오른쪽 이웃 추천 -->
+    <div class="right_body">
+      <div class="feed_name" style="justify-content: space-between">
+        {% if user.id %}
+        <div style="display: flex; align-items: center; ">
+          <div class="big_profile_box">
+            <img class="profile_img" src="{% get_media_prefix %}{{ user.profile_image }}">
+          </div>
+          <div class="name_content">
+            <span class="feed_name_txt"> {{ user.nickname }} </span>
+            <span class="name_content_txt"> {{ user.name }}</span>
+          </div>
+        </div>
+  
+        <a class="link_txt" >
+          전환
+        </a>
+
+        {% else %}
+        <div style="display: flex; align-items: center; ">
+          <div class="big_profile_box">
+            <img class="profile_img" src="/media/image.gif">
+          </div>
+          <div class="name_content">
+            <span class="feed_name_txt"> Guest </span>
+            <span class="name_content_txt"> Please, login </span>
+          </div>
+        </div>
+
+        {% endif %}
+      </div>
+  
+      <div class="recommend_box">
+        <span style="color: gray"> 회원님을 위한 추천</span>
+        <a href="#" style="font-size: 12px; font-weight: bold; color: black; text-decoration: none;"> 모두 보기 </a>
+      </div>
+      <div>
+        <div class="feed_name" style="justify-content: space-between">
+          <div class="profile_box">
+            <img class="profile_img"
+                 src="https://i.pinimg.com/736x/93/a6/8b/93a68b57a54e4bdc73d43d1d049b94b3.jpg">
+          </div>
+          <div class="name_content">
+            <span class="feed_name_txt"> dation3388 </span>
+            <span class="name_content_txt"> Jinstargram 신규가입</span>
+          </div>
+          <a class="link_txt">
+            팔로우
+          </a>
+        </div>
+        <div class="feed_name" style="justify-content: space-between">
+          <div class="profile_box">
+            <img class="profile_img" src="http://file3.instiz.net/data/cached_img/upload/2021/01/27/18/2ce2f41f7e9f09c0acc77faac7452dbf.jpg">
+          </div>
+          <div class="name_content">
+            <span class="feed_name_txt"> gaoudi </span>
+            <span class="name_content_txt"> IU 외 5명이 팔로우</span>
+          </div>
+          <a class="link_txt">
+            팔로우
+          </a>
+        </div>
+        <div class="feed_name" style="justify-content: space-between">
+          <div class="profile_box">
+            <img class="profile_img" src="https://yt3.ggpht.com/QMPufe58KvokH4KyEmwWVhNbzQX1c-CDCSvL9rbA_zJ3G4QAMMO9k_V5deoOFBMNg4P1iGH9tA=s900-c-k-c0x00ffffff-no-rj">
+          </div>
+          <div class="name_content">
+            <span class="feed_name_txt"> CAU </span>
+            <span class="name_content_txt"> IU 외 5명이 팔로우</span>
+          </div>
+          <a class="link_txt">
+            팔로우
+          </a>
+        </div>
+        <div class="feed_name" style="justify-content: space-between">
+          <div class="profile_box">
+            <img class="profile_img" src="https://pbs.twimg.com/media/EhzH0_DU4AEZ9yr.jpg">
+          </div>
+          <div class="name_content">
+            <span class="feed_name_txt"> 123456789 </span>
+            <span class="name_content_txt"> 그냥 추천해봄 </span>
+          </div>
+          <a class="link_txt">
+            팔로우
+          </a>
+        </div>
+        <div class="feed_name" style="justify-content: space-between">
+          <div class="profile_box">
+            <img class="profile_img" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHPNYM5RQgA2F7BtpBQ-OrNFKDXVDUpypRuw&usqp=CAU">
+          </div>
+          <div class="name_content">
+            <span class="feed_name_txt"> instiz </span>
+            <span class="name_content_txt"> 애도 유명해 </span>
+          </div>
+          <a class="link_txt">
+            팔로우
+          </a>
+        </div>
+      </div>
+      <div class="comment_box">
+        <span> 인스타그램 클론 코딩 </span>
+        <span> https://cholol.tistory.com </span>
+        <br>
+        <span> @2021 Jin.99 </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 모달(이미지 업로드) -->
+  <div id="modal_add_feed" class="modal modal_overlay">
+    <div class="modal_window">
+      <div class="modal_title">
+        <div class="modal_title_side"></div>
+        <div> 새 게시물 </div>
+        <div class="modal_title_side">
+          <span class="close_modal material-icons-outlined">close</span>
+        </div>
+      </div>
+
+      <div class="modal_image_upload">
+        <span style="text-align: center"> 사진을 여기에 끌어다 놓으세요. </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 모달에 이미지를 업로드하고 내용까지 올릴 수 있게 화면 변환 -->
+  <div id="modal_add_feed_content" class="modal modal_overlay_content">
+    <div class="modal_window" style="padding-left: 0px;">
+      <div class="modal_title"  style="border-bottom: solid 1px rgb(206, 203, 203);">
+        <div class="modal_title_side"></div>
+        <div style="margin: 5px"> 새 게시물 </div>
+        <div class="modal_title_side">
+          <span class="close_modal material-icons-outlined">close</span>
+        </div>
+      </div>
+
+      <div class="modal_image_content">
+        <div id="input_image" class="modal_image_upload_content"></div>
+        <div class="modal_content_write">
+          <div class="feed_name">
+            <div class="profile_box">
+              <img id="input_profile_image" class="profile_img" src="{% get_media_prefix %}{{ user.profile_image }}">
+            </div>
+
+            <span id="input_user_id" class="feed_name_txt"> {{ user.nickname }} </span>
+          </div>
+          <div style="height: 440px">
+            <textarea id="input_content" class="feed_content_textarea form-control col-sm-5" rows="10" placeholder="설명을 입력하세요..."></textarea>
+          </div>
+
+          <div style="width: 100%; text-align: center">
+            <button id="button_write_feed" type="button" class="btn btn-primary" style="width: 268px"> 공유하기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Optional JavaScript; choose one of the two! -->
+  <script>
+
+  // 댓글달기
+  $(".upload_reply").click(function (event) {
+    let user = event.target.attributes.getNamedItem('user').value;
+    console.log(user)
+
+    if (user == 'None') {
+        flag = confirm("로그인 하시겠습니까?")
+        if (flag) {
+          location.replace('/user/login')
+        }
+      } else {
+        let feed_id = event.target.attributes.getNamedItem('feed_id').value;
+        let reply_id = 'reply_' + feed_id;
+        let reply_content = $('#' + reply_id).val();
+        console.log(feed_id)
+
+        if (reply_content.length <= 0) {
+            alert("댓글을 입력하세요");
+            return 0;
+        }
+
+        $.ajax({
+            url: "/content/reply",
+            data: {
+                feed_id: feed_id,
+                reply_content: reply_content
+            },
+            method: "POST",
+            success: function (data) {
+                console.log("성공");
+                alert("댓글을 작성했습니다.");
+                $("#reply_list_" + feed_id).append("<div class='feed_reply'><span class='feed_txt'><b>{{ user.nickname }}</b> " + reply_content + "</span></div>")
+                // location.replace('/');
+
+            },
+            error: function (request, status, error) {
+                console.log("에러");
+                alert("댓글을 다시 작성해주세요.");
+            },
+            complete: function () {
+                console.log("완료");
+                $('#' + reply_id).val('');
+            }
+        });
+      }
+  });
+  
+  // 피드 삭제하기
+  function deleteFeed(id) {
+      // console.log('버튼 누름');
+      resp = confirm("이 피드를 삭제하시겠습니까?")
+      if (resp) {
+        let fd = new FormData();
+
+        fd.append('id', id);
+        fd.append('target', 'feed');
+        // console.log(fd.id);
+
+        $.ajax({
+          url: "/content/delete",
+          data: fd,
+          method: "DELETE",
+          processData: false,
+          contentType: false, // application/json
+          success: function (data) {
+            console.log("성공");
+            alert("피드를 삭제하였습니다.");
+          },
+          error: function (request, status, error) {
+            console.log("에러");
+            alert("삭제 실패.");
+          },
+          complete: function () {
+            console.log("완료");
+            location.replace("/");
+          }
+
+        });
+      }
+    }
+
+    // 댓글 삭제
+    function deleteReply(id) {
+      resp = confirm("이 댓글을 삭제하시겠습니까?")
+      if (resp) {
+
+        let feed_id = event.target.attributes.getNamedItem('feed_id');
+        let reply_content = event.target.attributes.getNamedItem('reply_content');
+
+        // let fd = new FormData();
+
+        // fd.append('id', id);
+        // fd.append('target', 'feed');
+        // console.log(fd);
+
+        $.ajax({
+          url: "/content/delete",
+          data: {
+            feed_id,
+            reply_content
+          },
+          method: "DELETE",
+          processData: false,
+          contentType: false, // application/json
+          success: function (data) {
+            console.log("성공");
+            alert("댓글을 삭제하였습니다.");
+          },
+          error: function (request, status, error) {
+            console.log("에러");
+            alert("삭제 실패.");
+          },
+          complete: function () {
+            console.log("완료");
+            location.replace("/");
+          }
+
+        });
+      }
+    }
+
+  </script>
+
+
+  <!-- 제이쿼리 사용 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj"
+        crossorigin="anonymous">
+  </script>
+
+  <script src="/static/js/script.js" type="text/javascript"></script>
+
+</body>
+</html>

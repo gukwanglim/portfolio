@@ -1,0 +1,384 @@
+장고 시작하기 - django-admin startproject config
+
+<-- 시작 이유 -->
+0. 장고로 인스타그램 클론 코딩하기. https://cholol.tistory.com/545?category=739855
+ - 클론 코딩을 하는 이유 : 이전 프로젝트(쇼핑몰 만들기)에서 데이터베이스 사용에 아쉬움을 느끼고.
+
+
+
+<-- 프론트엔드 -->
+1. html 연동 : templates 파일 생성 -> 그 안에 프로젝트 파일과 같은 이름의 파일 생성(config) -> 그 안에 main.html파일 생성
+  -> 이때 vs code는 templates 파일을 자동으로 설정하는 것이 아니므로 settings.py의 templates 부분에 BASE_DIR / 'templates' 작성
+  -> main.html 파일을 보여주기 위해 프로젝트 파일 안에 views.py 생성 -> rest_framework를 사용하기 위해 djangorestframework을 install
+  -> djangorestframework을 설치하면 설치했다고 알려주기 위해 settings.py에서 INSTALLED_APPS 부분에 추가 
+  -> main.html을 보여줄 class Main(APIView)를 작성 -> 이것들을 연결해주기 위해 urls.py 파일에서 Main을 import 하고, urlpatterns = [path('', Main.as_view())] 작성
+  -> 터미널에서 python manage.py runserver 실행
+
+2. css 파일 연동 (정적(static) 파일 기능) : settings.py의 STATIC_URL = '/static/' 아래에 STATICFILES_DIRS = [BASE_DIR / 'static] 작성
+  -> manage.py가 있는 위치에 static 파일 생성 -> static 안에 css 파일 생성 후, style.css 생성 -> css를 사용하는 파일의 제일 위에 {{% load static %}} -> <head> 부분에 <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+3. 팝업은 브라우저에서 특정 웹페이지에 들어갔을 때 새로운 브라우저가 뜨면서 새로운 화면이 뜨는 것.
+   모달은 팝업과 달리 새로운 브라우저창이 뜨지 않습니다. 대신 기존 화면 위에 새로운 화면이 그려지는 것.
+
+  3-1. 모달 만들기 코드
+    const OO은 OO이라는 상수를 만들기 위한 코드. 상수는 변하지 않는 값으로 한 번 선엄하면 그 뒤로 값을 바꿀 수 없음.
+    여기서는 const modal = document.getElementById("modal_add_feed"); 을 사용하여 document(이 문서('main.html)에서).getElementById("modal_add_feed");(modal_add_feed 이라는 id를 가지고 상수라 정의한다.) - buttonAddFeed도 마찬가지
+    (상수 : const의 반대는 변수 : var 이다.)
+
+    마지막으로 buttonAddFeed.addEventListener() 같은 경우는 buttonAddFeed에 addEventListener(이벤트)가 들어오면 ()안의 내용을 실행.
+    여기에서는 "click", e => {modal.style.display = "flex";}로 버튼을 클릭할 경우, modal이라고 정의한 id에서 사용된 css의 display 부분을 'flex'로 바꿔라는 뜻.
+    
+    간단하게 동작을 설명하자면 원래 "modal_add_feed"에서는 display = "none"으로 실행이 안 되는 상황인데 버튼을 누르면 "flex"로 변경되며 실행.
+    반대로 닫기 버튼은 display를 다시 none으로 변경하여 안 보이게 만드는 것.
+
+  3-2. console.log(window.pageYOffset + " 위치")를 사용하여 현재 화면의 y 좌표를 알아내기 -> 스크롤을 내리고 모달을 펼치면 상단에 밀려 나오는 것을 modal.style.top을 현재 화면 위치로 정의하여 만들어준다
+
+  3-3. jquery 활용하기 : 제이쿼리는 자바스크립트와 비슷한데 필요한 몇몇 기능들을 짧게 사용할 수 있도록 만들어주는 라이브러리.
+
+      $('.modal_image_upload')을 작성하여 사용하고 싶은 css 구문에 불러오기(''을 사용하면 class를 불러오기 '' 대신 앞에 #만 붙이면 id를 사용)
+      on 안에(쉽게 말해 dragOver()의 형태가 아닌 dragOver만 사용) 함수를 호출할 때 아무것도 안 넣으면 event.data를 전달.
+
+      function dragOver(e)는 if 문을 사용하여 조건을 부과할 수 있음.
+      여기서 e는 아무것이나 사용해도 상관없다.(대충 event.data를 전달한다는 내용)
+
+      function dragOver(e) 안에 {console.log(e);}을 작성한 다음에 업로드 장소에 이미지를 올리면 콘솔에서 log가 변하는 것을 확인할 수 있다.
+      여기서 target을 보면 div.modal_image_upload를 가리키고 있습니다. 우리가 만든 div를 말하네요.
+      또한, function dragOver(e) 안에 {if 구문}을 넣으면 조건에 따라 css를 변경시킬 수 있다(여기서 e.type은 처음 on()을 설정할 당시 ''에 묶여있는 부분이다)
+
+  3-4. jquery에서 제일 중요한 부분은 e.dataTransfer = e.originalEvent.dataTransfer; var files =  e.dataTransfer.files; 두 줄.
+      첫 번째 줄은 jquery 특성상 적어야 하는 부분.
+      두 번째 줄은 files에 드래그한 파일이 들어가게 되는 부분.(var files는 '리스트'형태)
+
+  3-5. 이미지를 업로드 할 경우, "url(" + window.URL.createObjectURL(files[0]) + ")"를 사용하여 css의 수정을 거쳐 올릴 수 있게 만든다.
+
+  3-6. 이미지를 업로드하고 공유 버튼을 눌렀을 때 실행 : 
+      1단계 - 화면에서 데이터를 끌어오는 단계
+      2단계 - 끌어온 데이터를 백엔드 쪽(views.py)으로 넘기는 단계
+
+      1단계(프론트)      
+        데이터를 모으는 단계에서는 input값에 적은 feed의 글내용과 이미지, 글쓴이 정보를 jquery를 이용해 가져옵니다. 그리고 ajax통신을 통해 django에 views.py에 만들어놓은 함수로 보내게 됩니다. 
+
+        script.js 파일에서 $('#button_write_feed').on('click' 이 부분이 데이터를 긁어오는 부분으로 image, content, profile_image, user_id, file을 가져와서 데이터가 비어있는지 채워져 있는지 체크.
+        이렇게 input데이터를 검증하는 코드는 프론트에 위치할 수도 있고 백엔드에도 위치할 수 있습니다.
+
+      2단계(프론트에 가까운 백엔드)
+        데이터를 서버로 전송하는 역할은 function writeFeed(fd)라는 함수가 하게 됩니다.
+        ajax를 이용해서 api 호출하게 되는데 fd라는 formdata를 넘기게 됩니다.
+        데이터를 긁어 오는 곳에서 formdata를 만들게 되는데, 파일을 전송하게 위해서는 formdata를 사용해야 합니다.
+        파일이 아닌 일반적인 데이터 같은 경우는 json형태로 넘기는 게 보통입니다. (rest 표준)
+
+        ajax에 success와 error, complete function이 있는데, 각각 성공, 실패, 완료 후 실행되는 callback함수입니다. callback함수는 특정 조건에서 호출되는 함수라는 의미입니다.
+        (complete는 성공이든 실패든 요청이 끝나면 무조건 실행)
+
+        즉, 성공이든 실패든 modal창을 닫기 위해 complete안에 closeModal();을 넣어 modal을 닫아줍니다.
+        그리고 업로드한 feed를 메인화면에서 확인할 수 있게 화면은 새로고침해(location.reload();)줍니다.
+
+        url을 /content/upload로 만들었기 때문에 해당 경로에 views.py에 함수를 만들어 연결시켜 줍니다.
+        config/views.py에 class Main아래 UploadFeed를 만들어줍니다.
+
+        { 백엔드 4번으로.. }
+
+4. 로그인, 회원가입 html 만들기 : templates 파일 안에 user 파일 만들기
+
+
+
+
+<-- 백엔드 -->
+Django는 MTV 구조로 되어있습니다. MTV란 모델, 템플릿, 뷰 3가지를 합쳐서 부르는 말인데요, 우리가 만드는 웹 서비스를 이 3가지로 분리할 수 있습니다. 
+
+먼저, 모델은 데이터의 형태를 말합니다. django에서 모델은 class로 표기합니다. class는 모델보다 상위개념으로 객체를 뜻.
+ex) 피드 - { 본문, 사진, 프로필사진, 아이디, 좋아요 수 }
+    추천인 - { 프로필사진, 아이디, 추천 이유 }
+class 모델명(models.Model): 이 기본형.
+
+장고는 APP(앱)단위로 소스를 관리할 수 있습니다.(모델 관리)
+
+1. content라는 앱을 하나 만들기 : python manage.py startapp <앱이름>(예를 들자면 content) -> content라는 파일이 만들어지고 그 안에 여러 .py 파일이 생성 
+  -> content를 생성했으면 settings.py에서 INSTALLED_APPS에 content 추가 -> models.py에 모델 추가 -> 데이터베이스 만들기
+
+2. 데이터베이스 만들기 (장고에서 sqlite 대신 mariadb 사용하기. https://velog.io/@_koiil/Django-MariaDB-%EC%82%AC%EC%9A%A9, https://youngwonhan-family.tistory.com/36)
+ - 장고에서 mariaDB를 사용하는 것도 오라클처럼 config/setting.py에서 데이터베이스를 변경해주면 된다.
+ - 장고에 default로 들어가는 sqlite 대신 mariadb를 사용하는 이유 : sqlite는 데이터베이스 중에서 용량이 작은 편이며, 이전 프로젝트에서 사용하였을 때, 동일한 작업을 처리하는 것도 수많은 방법을 사용하여 정보에 혼선이 많아
+   개발자가 되어서도 사용하기 편한 db를 찾아서 사용.
+
+  2-1. 데이터베이스 만들기(Mariadb) : settings.py에서 DATABASES 부분 따로 설정 -> settings.py에서 INSTALLED_APPS 부분 아래에 TIME_ZONE = 'Asia/Seoul'와 USE_TZ = True를 사용하여 시간 설정 -> models.py에 테이블을 만들었는지 확인
+      -> python manage.py makemigrations 실행으로 models.py에서 생성된 모델을 마이그레이션 객체로 변환 -> 수행결과에 보면 0001_initial.py가 생성된 것을 확인 -> python manage.py migrate으로 데이터베이스에 모델을 배포
+      -> 데이터베이스를 확인해보면 여러 django 기본 테이블 사이에 내가 만든 테이블(여기서는 content_feed)을 확인할 수 있음 -> content_feed를 보면 작성하지 않은 id 필드가 프라이머리키로 들어가 있는 것을 확인
+
+3. models.py에서 만든 DB에서 main.html로 데이터를 이동(views.py(content 안에 있는 것이 아닌 config(처음 만든 프로젝트 파일)에 있는 것)) : views.py에서 content.models에 있는 Feed 불러오기 
+  -> 여기서 dict 형태로 넣으면 key가 feed_list이고, value가 테이블에 작성한 데이터. (여기서 테이블에 한글이 안 들어갈 경우 ALTER TABLE 테이블명 CONVERT TO CHARSET UTF8; 쿼리를 사용)
+  -> sqlite에서와 마찬가지로 [{}, {}, {}] 이런 형식으로 들어가있음. 즉, feed_list[0].image 형식으로 불러오기 가능
+
+
+4. 업로드된 정보를 받아오기 위해서 config/views.py의 Main() 함수 아래 UploadFeed() 함수 생성.
+  file을 처리하기 위해서는 request.FILES를 통해서 파일을 읽어와야 합니다. 여기서는 uuid라는 값을 랜덤으로 만들어서 해당 파일의 고유 id값으로 사용하고 있습니다.
+
+  save_path = os.path.join(MEDIA_ROOT, uuid_name)에서 MEDIA_ROOT는 settings.py에서 MEDIA_URL과 MEDIA_ROOT를 만들어서 설정.
+  config/settings.py에서 MEDIA_URL = '/media/'와 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')를 작성.
+
+  static은 서버를 돌릴 때 필요한 파일들이고, media는 사용자가 올리는 파일들을 관리하는 곳.
+  다시 말해, 사용자들이 올리는 이미지는 media에 저장되게 됩니다.
+
+  파일을 제외한 데이터는 request.data.get을 통해 가져올 수 있다.(config/views.py에서 UploadFeed 클래스의 content, profile_image, user_id)
+
+  request.data.get을 통해 가져온 데이터를 가지고 Feed.objects.create를 통해 새로운 Feed를 만들 수 있습니다.
+
+  그리고 클라이언트에게 status=200인 응답(Response)을 줍니다.
+
+5. views.py에서 함수를 만들었으니 urls.py에서 함수에 url을 할당.추가로 사용자들이 업로드한 이미지를 사용할 수 있도록 media에 대한 url도 추가해줘야 합니다.
+  추가로 사용자들이 업로드한 이미지를 사용할 수 있도록 media에 대한 url도 추가해줘야 합니다.
+
+6. 'content/upload'로 접속할 경우 UploadFeed를 실행합니다.
+  config/urls.py 파일에서 urlpatterns 아래 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 코드가 media경로를 url에 포함하는 코드입니다.
+  요걸 해줘야 우리가 파일을 올리면 ~/medai/{파일 이름}으로 조회할 수 있습니다.
+
+
+7. 로그인, 회원가입 만들었기
+  python manage.py startapp user을 사용하여 user 앱을 만든다. - 앱을 만들었으니 당연히 settings.py의 INSTALLED_APP 부분에 user 추가 - 장고에서 기본적으로 제공해주는 사용자 모델은 추가적인 기능들을 제공
+  그렇게 때문에 커스텀 유저 모델을 사용. - user/models.py에서 User class 생성(장고에서 제공하는 기본적인 사용자 모델을 사용하기 위해서는 AbstractBaseUser라는 클래스를 상속)
+  - 이전에 다른 모델 만들 때는 class 모델명(models.Model)이라고 한 반면, 사용자 모델은 class User(AbstractBaseUser)
+
+  USERNAME_FIELD = 'id'는 사용자의 이름값을 'id'필드로 사용
+  REQUIRED_FIELDS는 사용자 데이터를 만들 때 꼭 필요한 데이터 필드(프라이머리키 라고 설명할 수 있겠다)
+
+  우리가 만든 User모델이 Django기본 유저 모델이라는 것을 명시해줘야 합니다. - settings.py에서 AUTH_USER_MODEL = 'user.User' 추가.
+  password라는 필드를 따로 정의해주지 않았는데도 필드가 있다는 점.
+  또한, mariadb를 보면 기본적으로 auth_user라는 테이블이 만들어져있기 때문에 데이터베이스를 지운 다음에 python manage.py makemigrations과 migrate을 실행
+  AbstractBaseUser를 상속받아서 사용하면 좋은 점 중에 하나인데, password 필드가 자동으로 암호화되어서 저장되기 때문에 저희가 따로 암호화 로직을 넣어줄 필요가 없습니다.
+
+  { 프론트엔드 4번으로 ..}
+
+8. exists()라는 함수를 이용해 중복을 체크하여 이미 존재하는 이메일, 아이디로 회원가입하는 것을 방지. input email과 동일한 email의 데이터가 있으면 True, 없으면 False를 반환.
+  password=password가 아니라 password=make_password(password)라고 적힌 부분에서 password를 암호화.
+
+
+
+
+POST 방식이란 GET 방식과는 다르게 데이터를 생성하거나 수정 및 삭제 요청을 할 때 주로 사용되는 HTTP 메소드 
+
+
+<-- 오류(문제) 발생 사진 설명 -->
+- 1번 오류는 데이터베이스가 한글을 받아들이지 못할 때 발생하는 오류이다. 이것은 데이터베이스에서 ALTER TABLE content_feed CONVERT TO CHARSET UTF8 구문을 실행하면 해결이 가능하다.
+
+- 포폴에 올릴 오류사진 2번은 데이터베이스가 한글을 받아들이지 못해서 생긴 오류이다. 
+  MySQLdb.OperationalError: (1366, "Incorrect string value: '\\xEC\\x9D\\xB4\\xEB\\xA0\\x87...' for column `jango_star`.`content_feed`.`content` at row 1")의 문장을 보면 Feed 테이블의 content 부분이 들어가지 못하는 것을 확인할 수 있는데
+  한글을 받아들이지 못할 경우 발생하여 데이터베이스의 쿼리문 ALTER TABLE content_feed CONVERT TO CHARSET UTF8을 실행하면 해결할 수 있다.
+
+- 포폴에 올릴 오류사진 3번은 main.html에서 {% get_media_prefix %} (location 주소) 부분을 넣지 않았기 때문이다.
+
+- 4번 문제는 화면을 내린 상태에서 모달을 띄웠을 때 발생하는 문제이다. 이것은 모달을 띄우는 ajax 구문에서 $('#modal_add_feed').css({top: window.pageYOffset + 'px'})을 넣어주면 현재 위치에서 모달 띄우기가 가능해진다.
+
+- 6번 문제는 urls.py에서 해당하는 함수 (여기서는 LogOut)을 실행 시킬 수 있는 페이지로 넘어갈 수 있게 만들어줘야 하는데 그렇지 못했을 경우 생기는 문제이다.
+
+- 7-1번 사진의 경우 47번째 줄 user가 for문 아래 위치하고 7-2번 사진의 경우는 user가 20번째 줄에 위치한다. 하지만 7-2번의 경우 로그아웃을 하여도 계속 로그인되어 있는 현상을 확인할 수 있는데 7-1번은 로그아웃이 정상적으로 작동하는 이유는 뭘까?
+
+- 8-1, 8-2번 사진의 경우 다른 사람의 피드에 댓글을 달 경우, 피드를 올린 사람의 아이디가 댓글을 쓴 사람의 아이디로 변경되는 현상을 볼 수 있는데, 그 문제의 원인은 content/views.py에서 Main class의 for구문(피드를 올리는 구문) 안의 for구문(댓글을 올리는 구문)
+  에서 user가 겹쳤었다.(쉽게 말해 피드를 올리는 for구문 안에서 user를 정의했는데 댓글을 다는 for구문 안에서도 user의 이름으로 정의를 하여 오류가 생겼던 것이다. 현재는 댓글을 다는 for구문 안의 user를 reply_user로 변경했다.)
+  그런데 for구문 안의 for구문에서 다시 정의를 한다면 그것은 안 겹쳐야하지 않나?
+
+
+
+
+
+<html 부분을 제외하고 데이터베이스 부터 다시 시작>
+
+위 내용에서 틀린 부분 :
+ 1. 위에서는 config(프로젝트 파일)에 views.py를 만들고 content 파일 안에 만든 views.py를 사용하지 않았는데 사실은 둘 다 사용해야한다.
+  1-1. config/views.py는 단순하게 html을 연결해주는 통로라고 생각하면 된다.
+  1-2. content/views.py가 실제로 데이터베이스에서 정보를 받아오거나 뿌려주는 역할을 한다.
+  즉, 기존의 config/views.py에 작성해놓은 코드를 지우고 다시 설정해야한다는 뜻이다. 또한, 블로그에는 로그인, 회원가입 부분에 대한 설명이 생략된 부분이 절반 이상이라고 생각된다.
+
+
+
+
+<-- 처음부터 시작 -->
+
+1. urls.py부분은 127.0.0.1:8000 의 뒤편에 /main 등으로 불러낼 수 있는 경로를 설정한다.(html을 부르는 것이 아닌 views.py에 정의된 class를 불러낸다.)
+
+2. views.py는 class(Main과 같은)를 정의하고 그 안에 def로 작동할 함수를 정의하여 html을 불러낸다.(여기서 return render(request, "config/main.html")의 형식으로 html 파일을 불러낸다.)
+ 2-1. 여기서 만약 settings.py에 존재하는 DEBUG를 False로 한다면 오류사진 1번과 같이 나오는 것이 아닌 그냥 404 페이지가 뜰 것이다. 다시 말해, DEBUG 모드를 사용했기 때문에 어떤 문제가 있는지 알려주는 것이다.
+
+3.python manage.py startapp content 를 사용하여 conten, user 앱을 만들었으면 이것을 앱이라고 인식할 수 있도록 config/settings.py의 INSTALLED_APPS 부분에 추가시켜줘야한다.(여기서는 프로젝트 파일인 config도 app처럼 사용하기 때문에 config도 마찬가지로 추가시켰다.)
+
+4. 데이터베이스에서 정보를 가져오기 위해서는 views.py(urls.py와 연동되어있는 클래스를 가지고 있는 곳)에서 데이터베이스의 테이블명을 import 해야한다.
+ 4-1. 데이터베이스 안의 정보는 Feed.objects.all()으로 가져올 수 있다. 여기서 만약 테이블 안 내용 중 하나를 들고 오고 싶다면 for 구문으로 돌리고 .name 등으로 부른다.
+ 4-2. 또한, 데이터베이스에서 받은 정보를 python으로 넘겨줄 때는 return render(request, "config/main.html", context=dict(feed_list=feed_list))처럼 context로 불러들인다.
+  4-2-1. 여기서 context는 dict의 형태로 받아야 하며 기본 디폴트 값은 json 파일로 받아야 하지만 dict의 형태가 json과 연관이 있어 사용해도 문제가 없다.
+
+5. close 버튼을 눌렀을 때, 첫번째 모달에서만 작동하고 두번째 모달에서 작동하지 않았던 문제를 해결하기 위해서는 close 버튼을 눌렀을 때 작동하는 것을 함수로 만들고 close 아이콘 앞 class 부분에 modal_close를 넣어주면 해결이 가능하다.
+
+6. AJAX란, JavaScript의 라이브러리중 하나이며 Asynchronous Javascript And Xml(비동기식 자바스크립트와 xml)의 약자이다. 브라우저가 가지고있는 XMLHttpRequest 객체를 이용해서 전체 페이지를 새로 고치지 않고도 페이지의 일부만을 위한 데이터를 로드하는 기법 이며 JavaScript를 사용한 비동기 통신, 클라이언트와 서버간에 XML 데이터를 주고받는 기술이다.
+  즉, 쉽게 말하자면 자바스크립트를 통해서 서버에 데이터를 요청하는 것이다.
+  6-1. 파일(이미지) 업로드는 비동기화로 이뤄져야한다.
+  6-2. ajax를 이용하여 html에 올라온 정보를 데이터베이스로 넘겨주어야 한다.
+  6-3. 데이터베이스에 올려주기 위해서는 '공유하기' 버튼을 눌렀을 때 작동하는 함수를 js 파일에서 ajax로 만들고 url: "/content/upload"의 형식으로 보내준 다음 content/views.py에서 UploadFeed class를 만들어야한다.
+  6-4. 만약 views.py에서 연동시켜주지 않으면 '공유하기'를 눌러도 데이터베이스에 정보가 올라가지 않는다.
+  6-5. 또한, config/urls.py에 path를 설정해줘야 제대로 작동한다.(처음 js 파일에서 ajax를 선언할 때, url: "/content/upload"로 했기 때문에)
+
+7. content/views.py에서 UploadFeed class 만들기.
+  7-1. 이때 데이터베이스에는 파일(이미지)를 저장하는 것이 아닌 경로를 저장하는 것인데, 실제 서버에서는 이미지를 따로 저장하는 곳이 있지만 장고에서는 media 파일에 저장하여 사용한다.(media 파일을 만들어준다.)
+  7-2. media 파일을 만들고, settinns.py에서 MEDIA_URL = '/media/', MEDIA_ROOT = os.path.join(BASE_DIR, 'media')을 작성한다.(여기서 MEDIA_URL = '/media/'은 항상 media로 저장한도록 설정하는 것이다.)
+  7-3. config/urls.py에 urlpatterns += static(MEDIA_URL, document_root=MEDIA_ROOT)를 작성하여 media에 올라간 이미지 파일을 조회할 수 있게 만든다.
+
+8. content/views.py의 UploadFeed class 추가 설명.
+  8-1. file = request.FILES['file'] : file을 처리하기 위해서는 request.FILES를 통해서 파일을 읽어와야 함.(파일 불러오기)
+  8-2. uuid_name = uuid4().hex : id를 만드는데 순서대로 만드는 것이 아닌 uuid를 사용하여 값을 랜덤으로 만들어서 고유 id값으로 사용.(이미지 이름이 한글, 영어, 특수문자 등이 섞여 있을 수 있으므로 유효 아이디를 생성)
+  8-3. save_path = os.path.join(MEDIA_ROOT, uuid_name) : MEDIA_ROOT는 settings.py에서 MEDIA_URL과 MEDIA_ROOT를 만들어서 설정.(사용자가 올리는 파일), (즉, 'media/유효아이디'의 형태로 저장하겠다.)
+  8-4. image = uuid_name : image는 유효아이디를 가져왔기 때문에 다른 정보(ex - content = request.data.get('content'))의 형식이 아닌 위에서 정의한 uuid_name을 사용하여 불러온다.
+  8-5. Feed.objects.create(content=content, image=image, profile_image=profile_image, user_id=user_id, like_count=0) : 불러온 데이터는 정의한 테이블로 옮긴다.
+  8-6. return Response(status=200) : 클라이언트에게 status=200인 응답(Response)을 줍니다.(API)
+
+9. 8번의 과정을 마치면 데이터베이스의 image 부분에는 내가 올린 이미지의 유효아이디가 저장된다. 즉, 127.0.0.1:8000 페이지에 올라가는 사진은 엑박으로 나온다는 뜻이다.
+  9-1. 1차적인 방식으로 이 문제를 해결하기 위해서는 데이터베이스에 image를 http://127.0.0.1:8000/media/유효아이디 의 형태로 넣어주면 되지만 복잡한 방법이된다.
+  9-2. 장고에서 사용할 수 있는 디폴트 경로({% get_media_prefix %})를 사용하면 된다.(단, {% get_media_prefix %}을 사용하기 위해서는 {% load static %}을 작성한 상태여야한다.)
+
+10. 장고는 기본적으로 user 테이블을 제공한다. 하지만 이 테이블에 우리가 필요한 내용이 없을 수 있으니 이것을 상속받아 새로운 테이블을 만들면 훨씬 간편하고 효율적으로 사용할 수 있다.
+  10-1. costom user 테이블을 만들기 위해서는 user/models.py에 User class 작성.
+  10-2. 장고의 디폴트값인 AbstractBaseUser을 상속받고 패스워드를 제외한 필요 정보를 테이블로 만들기.
+  10-3. settings.py의 INSTALLED_APPS 부분에 user 추가.
+  10-4. 기존 데이터베이스를 지우고 다시 python manage.py makemigrations, python manage.py migrate 실행.
+    10-4-1. 만약 user와 auth_user가 둘 다 만들어졌다면 AUTH_USER_MODEL = 'user.User'를 사용.
+    10-4-2. 데이터베이스를 새로 만든 상태에서 게시물을 올리면 바로 1번 오류가 뜬다. 이때는 당황하지 말고 쿼리구문 돌리기.
+
+11. 장고의 장점은 app 별로 관리할 수 있다는 것인데, urls.py는 항상 config 파일 안에서만 돌아간다. 물론 urls.py도 나눠서 app별로 관리할 수 있다.
+  11-1. content 파일 안에 urls.py를 만들고 config/urls.py에 있는 코드 중, content에 사용되는 것을 뽑아낸다.(여기에는 upload를 뽑아낸 것이다.)
+  11-2. config/urls.py에 include를 import 한 후, path('', include('content.urls'))을 사용.(()안에는 app의 위치)
+  11-3. 이때 content/urls.py에서는 path에 'content/upload'를 사용하지 않고 단순하게 'upload'만을 사용해도 127.0.0.1:8000/content/upload의 경로로 들어간다.
+
+12. user 파일에서도 마찬가지고 app으로 관리할 수 있다.
+  12-1. content와 마찬가지로 urls.py를 만들어서 사용한다.
+  12-2. 단, urls.py를 작성하기 전에 views.py에서 html과 데이터베이스에 연동시킬 수 있는 코드를 작성한다.(join, login 둘 다)
+  12-3. user/urls.py에 as_view()로 views.py를 연동시키고, config/urls.py에 include를 한다.(include는 user 하나로 join, login 둘 다 연동 시킬 수 있다.)
+  12-4. 이때, 로그인 페이지나 회원가입 페이지에서 '가입하기','로그인' 등을 눌러 그 페이지로 넘어갈 때는 href="/user/join"의 형식으로 .html을 쓰지 않는다.
+
+13. 로그인, 회원가입 데이터베이스에 넘겨줄 데이터 및 ajax 구성하기.
+  13-1. 회원가입, 로그인 페이지에서 사용자가 적은 내용을 받아와 데이터베이스에 저장하는 코드를 user/views.py에 작성.
+  13-2. script.js 파일에 ajax 구문 추가.(여기서 중요한 것은 이미지를 업로드 할 때는 파일을 받아오기 때문에 let fd = new FormData();를 사용하지만 회원가입과 로그인은 파일을 받아오는 것이 아니기 때문에 FormData를 사용하지 않는다.)
+  13-3. ajax를 사용할 때, FormData를 사용하지 않기 때문에 data 부분에는 내가 사용하고 싶은 데이터를 넣는다.
+  13-4. 무엇보다 user/views.py의 Login 부분에서 로그인을 성공하면 request.session['email'] = email으로 사용자의 로그인 정보가 session에 담기게 만든다.
+    13-4-1. 만약, session에 정보가 담기게 된다면 이것은 Login에서만 사용할 수 있는 것이 아니라 다른 class가 작동하여도 가져와서 사용할 수 있다.
+    13-4-2. 13-4-1로 인해 content/views.py 안의 Main class를 사용할 경우 email = request.session['email']로 불러와 user = User.objects.filter(email=email).first()로 사용할 수 있다.
+      13-4-2-1. email = request.session.get('email', None) user = User.objects.filter(email=email).first() 이런 식으로 불러온다.
+
+14. 하다보면 css 파일을 변경해도 적용되지 않는 경우가 있다. 이럴때는 크롬(엣지를 사용하면 엣지)의 설정에 들어가서 캐시를 삭제해줘야 한다.
+
+15. 프로필 이미지 수정을 위해서는 onchange="profile_upload();" 기능을 이용해서 이미지의 이름을 가져오고(물론 ajax를 이용하여 데이터를 받을 수 있게 만들어놓아야 한다.) user/views.py에 UploadProfile class를 만든다.
+  15-0. onchange으로 받아온 정보는 jquery에서 file로 받아올 수 있다.
+  15-1. UploadProfile class를 만들었으면 당연히 user/urls.py에 연동을 시킨다.
+  15-2. 또한 ajax의 url: "/user/profile/upload"이므로 user/urls.py에는 profile/upload으로 연동시킨다.
+  15-3. user/veiws.py에서는 정보를 가져와 수정하는 것이므로 create()를 사용하는 것이 아닌 save()를 사용한다.
+  15-4. 전체적인 흐름을 설명하자면 user/views.py의 UploadProfile class가 기존에 저장되어 있는 사용자 데이터베이스를 가져오고 새롭게 올릴 프로필 사진의 이름을 uuid로 바꾼 다음 profile_image로 대체한다는 뜻.
+
+16. 데이터베이스 모델을 더 효율적으로 만들기(오류사진 5번)
+  16-1. 현재 피드를 올리기 위한 데이터베이스의 테이블 Feed는 content, image, profile_image, user_id, like_count로 들어가 있다. 하지만, 로그인을 해야만 피드를 올릴 수 있다면 굳이 이렇게 많은 정보를 수집할 필요가 없다.(댓글, 좋아요 등도 마찬가지로 나중에 나눌거다.)
+  16-2. 우선, Feed를 content, image, email 이렇게 3가지로 줄인다.(email도 필수적인 요소는 아니지만 디폴트값을 만들기 위해 넣었다고 생각하면 편하다.)
+  16-3. 이렇게 Feed의 컬럼을 줄이면 피드를 업로드하기 위해 필수적으로 들어가야하는 정보들을 Feed 테이블에서만 가져오기에는 문제가 생긴다.
+  16-4. 위 문제를 해결하기 위해 content/views.py에서 feed_object_list을 정의해 업로드된 피드를 볼 수 있는 리스트와 feed_list =[]을 만든다.
+  16-5. feed_object_list에 대해 for문을 돌리며 Feed, User 테이블에서 정보를 가져와 feed_list에 append 시킨다.
+  16-6. 이렇게 만들면 피드를 업로드 한 후, 프로필 이미지가 고정되어 있었는데 프로필 이미지를 변경했을 경우, 변경된 이미지를 불러와 과거에 업로드한 피드에 적용시킬 수 있다.
+
+17. 좋아요. 댓글, 북마크 등 만들기.
+  17-1. content/models.py에 Like, Reply, Bookmark 테이블 만들기.(각자의 id(1부터 시작해서 하나씩 늘어남)와 적은 사람의 이메일, 댓글 내용, 좋아요 눌렀으면 True, 한 번 더 눌렀으면 False 등을 받을 수 있게 만든다.)
+  17-2. content/views.py에 UploadReply, ToggleLike, ToggleBookmark class 만들기.(화면에 적힌 내용들을 받아와 데이터베이스에 저장.)
+  17-3. 위의 코드를 모두 진행하면 feed_object_list에 like_count, reply_list, is_liked, is_marked 등을 받아와 피드에 뿌릴 수 있다.
+
+18. 댓글 달기.
+  18-1. feed_object_list에 reply_list를 받아야 하는데 UploadReply class를 보면 email만 받아오게 된다. 우리에게는 email이 아닌 닉네임이 보여야하기 때문에 reply_object_list를 만들어 for구문을 돌려야한다.
+  18-2. content/views.py의 Main class에서 reply_object_list = Reply.objects.filter(feed_id=feed.id) 형식으로 Reply의 feed_id는 실제 feed의 id가 된다.(그 이유는 내가 댓글을 달 피드의 id를 가지고 있어야 그 id에 맞는 피드에 댓글이 올라가기 때문이다.)
+  18-3. main.html의 104번째 줄을 보면 <div feed_id="{{ feed.id }}"...>으로 코드가 적혀있는데 그 이유는 댓글을 달기 위해서는 피드의 id를 가져와야하지만 그 id를 알아낼 수 없기 때문에 feef_id를 특정값인 {{ feed.id }}로 받아낸 것이다.
+  18-4. 또한, main.html에 feed_id를 부여하기 위해서 content/views.py의 Main class 부분의 feed_list에 feed.id를 append 시킨다.
+  18-5. feed_id를 부여하고 실제로 django를 실행시킨 후, 댓글의 '게시' 버튼의 html을 읽어보면 (ctrl+shift+c) feed_id가 실제 데이터베이스에 적용되어 있는 id로 나오는 것을 확인할 수 있다.
+  18-6. '게시'에 feed_id를 부여한 것과 마찬가지로 '댓글달기' 부분에도 reply_{{ feed.id }}와 같이 id를 지정하여 '댓글달기' 부부의 text를 가져올 수 있게 만든다.
+  18-7. 여기서는 '게시'를  class="upload_reply"로 지정하고 ajax를 사용하여 '게시'를 클릭 시, upload_reply가 동작하게 만드는데 let feed_id = event.target.attributes.getNamedItem('feed_id').value;를 사용하면 '게시'를 클릭했을 때 id를 가져오게 만들 수 있다.
+  18-8. 위에서 가져온 id를 활용하면 '댓글달기'의 id도 손 쉽게 가져올 수 있다.
+  18-9. 물론 18-8.에서 가져온 id는 앞에 'reply_'만 붙여놓은 것이므로 let reply_content = $('#' + reply_id).val();를 이용해서 id로 불러와 '댓글달기'에 적힌 text를 가져올 수 있다.
+  18-10. 다른 ajax와 마찬가지로 url을 설정한 다음, content/urls.py에서 UploadReply를 연동.
+
+  18-11. 이때, 피드 업로드 방식을 사용하면 댓글을 올린 다음 화면 전체가 새로고침되는 방법을 사용하게 되는데 이것은 데이터베이스에 정보를 올리고 다시 받아오는 형식이라고 말할 수 있다.
+  18-12. 하지만, ajax를 사용하면 데이터베이스에 정보를 올린 후, 전체 화면을 새로고침하지 않고서도 화면에 div를 추가시켜 내가 추가시킨 부분만 새로고침되는 것을 볼 수 있다.
+  18-13. 이렇게 된다면 프로그램을 다시 실행했을 경우에는 데이터베이스에서 받아온 정보를 보는 것이 되고, 내가 댓글을 달면 그것을 곧바로 화면에서 볼 수 있게 되는 것이다.
+
+  18-14. 화면 갱신 방법(ajax)를 사용하기 위해서는 main.html의 댓글부분(데이터베이스에서 댓글을 받아와 for구문으로 돌리는 부분/main.html의 103번째 줄)을 <div>로 묶고 id="reply_list_{{ feed_id }}"라는 id를 부여한다.
+  18-15. 이렇게 된다면 댓글이 올라가는 부분은 id를 가지게 되고, 그 id를 찾아서 새로운 <div>(내가 적은 댓글)을 올릴 수 있게 된다.
+
+  18-16. 내가 업로드한 화면만 갱신하는 방법은 $("#reply_list_" + feed_id).append("<div class='feed_reply'><span class='feed_txt'><b>{{ user.nickname }}</b> " + reply_content + "</span></div>")를 사용하여 18-14.에서 만든 list에 추가시키는 방법이다.
+  18-17. 이렇게하면 내가 추가시킨 부분은 일시적으로 html에 추가되어 화면에 나오게되고, 새로고침을 할 경우 화면에만 추가된 부분은 사라지고 데이터베이스에서 정보를 불러와 갱신한다.
+  18-18. 만약, 댓글은 올라갔는데 댓글창에 내가 적은 글이 아직 남아있다면 $('#' + reply_id).val('');을 사용하여 댓글창을 초기화시킨다.
+
+19. 좋아요 표시, 북마크.
+  19-1. content/models.py에서 Like class 만들기.(여기서 is_like는 BooleanField으로 들어가지만, Mysql에서는 Tinyint로 받는다. Tinyint는 0일 경우 False, 그 외 숫자일 경우 True를 반환한다.)
+  19-2. content/views.py에서 Main class 부분에 like_count는 해당 피드(id)를 가진 데이터에서 True의 개수를 저장한다.
+  19-3. content/views.py에서 Main class 부분에 is_liked는 해당 피드(id)를 가진 데이터에서 로그인한 사용자의 email이 있고, is_like=Ture라면 True를 저장한다.(is_liked=Ture가 된다면 좋아요(하트)가 채워지게 만든다.)
+  19-4. 위의 작업은 단순하게 데이터베이스에서 정보를 받아와 피드를 업데이트 시키는 방법이다.
+
+  19-5. script.js 파일에서 하트를 눌렀을 경우, 하트의 색이 변하게 만들기 위해서 feed_id와 favorite_id를 가져오고 이것을 활용하여 feed_id의 아이콘의 이름을 불러와 아이콘을 눌렀을 때, 하트의 색이 채워지거나 지워지도록 만든다.
+  19-6. 또한, 하트를 눌렀을 때, True, False를 데이터베이스에 넣어주기 위해 url과 data를 설정하고 content/urls.py로 연동시킨다.
+  19-7. 위 19-6.에서 주의할 점은 그냥 데이터베이스에 True, False를 넣으면 한 사용자가 좋아요를 눌렀다가 한 번 더 눌러 취소했을 경우 Like 테이블에 1과 0 두 가지 데이터가 저장된다.(이 경우 좋아요를 취소해도 총 좋아요수는 일정하고 다시 좋아요를 누를 경우 좋아요수가 끝없이 증가할 수 있게 된다.)
+  19-8. 때문에 content/views.py에서 Like.objects.filter(feed_id=feed_id, email=email).first() 로 로그인한 사람의 이메일이 있는지 확인하고 만약, 이메일이 이미 있을 경우 is_like 부분을 변경(save())한다.
+
+  19-9. 북마크는 좋아요랑 똑같다.(오히려 북마크를 누른 총 개수를 사용하지 않기에 훨씬 편하다.)
+
+  19-10. 다만, 좋아요를 눌렀을 때, 하트의 색은 변하지만 좋아요 총 개수는 새로고침을 해야지만 변하는 것을 확인할 수 있다. 이 문제를 해결하기 위해서는 무엇을 해야할까.
+
+20. 프로필에서 내 게시물, 좋아요, 북마크 보여주기.
+  20-1. content/views.py에서 Profile class에 feed_list, like_list, like_feed_list, bookmark_list, bookmark_feed_list를 추가.
+
+  20-2. feed_list는 올라간 feed 중에서 로그인한 사용자의 email이 있는 피드를 가져온다.(profile.html에서 for문으로 feed_list를 가져와 리스트에 있는 이미지만 화면에 띄운다.)
+  20-3. like_list는 Like 테이블에서 로그인한 사용자의 email과 좋아요를 눌러 True로 되어있는 데이터에서 feed_id를 리스트의 형태로 가져온다.
+  20-4. like_feed_list는 Feed 테이블에서 like_list로 가져온 id와 같은 피드를 불러온다.(profile.html에서 for문으로 like_feed_list를 가져와 리스트에 있는 이미지만 화면에 띄운다.)
+  20-5. bookmark_list는 Bookmark 테이블에서 로그인한 사용자의 email과 북마크를 눌러 True로 되어있는 데이터에서 feed_id를 리스트의 형태로 가져온다.
+  20-6. bookmark_feed_list는 Feed 테이블에서 bookmark_list로 가져온 id와 같은 피드를 불러온다.(profile.html에서 for문으로 bookmark_feed_list를 가져와 리스트에 있는 이미지만 화면에 띄운다.)
+
+  20-7. profile 페이지에 떠있는 '내 게시물, 좋아요, 북마크'에 각자 id(button_id)를 부여하고 마찬가지로 사진을 띄울 수 있는 <div>에 id(feed_list_id)를 부여한다.
+  20-8. script.js 파일에 button_id를 클릭할 경우, 해당하는 feed_list_id를 불러와 화면에 띄운다.
+
+21. 로그아웃 상태에서 좋아요, 북마크, 댓글 등을 눌렀을 때 로그인 페이지로 넘어가기.
+  21-1. templates/config/main.html에서 좋아요(favorite)부분에 user={{ user }}로 넣어주기.(user라는 이름의 id 만들기). 당연하게 이 user는 로그아웃이 된 상태에선 none을 반환한다.
+  21-2. script.js 파일에서 favorite 부분에 let user = event.target.attributes.getNamedItem('user').value;를 사용하여 main/html에서 만든 user의 id값을 받아오고 만약 그 값이 none이면 flag = confirm("로그인 하시겠습니까?")가 작동하도록 만든다.
+  21-3. 여기서 confirm은 화면에 '확인/취소'를 클릭할 수 있는 alert를 말하고, flag는 이벤트이 이름을 설정한 것이다.
+  21-4. if (flag) {location.replace('/user/login')}를 사용하면 화면에 뜬 confirm에서 확인을 눌렀을 경우에 location.replace()로 지정한 페이지로 이동하게 된다.
+  21-5. 나머지 북마크, 댓글도 이와 같은 방법을 사용한다.
+
+22. 내가 쓴 피드 삭제하기.
+  22-1. main.html의 피드에 점 세개(more_horiz)를 넣기 위해서는 <div class="profile_box" style="display:flex;">으로 style="display:flex;"을 넣어야지만 사용할 수 있다.
+  22-2. {% if feed.nickname == user.nickname %}으로 로그인한 아이디가 올린 피드만 수정할 수 있게 만든다.
+  22-3. <a class="feed_delete dropdown-item" onclick="deleteFeed('{{ feed.id }}');">삭제</a>에서는 onclick="deleteFeed('{{ feed.id }}');"로 명령어를 준다.
+  22-4. function deleteFeed(id)를 만들어 '삭제'를 클릭하였을 때, 피드 삭제가 진행되도록 한다.(onclick이나 onchange로 받아온 function은 script.js 파일에 넣으면 작동을 하지 않기에 html 아래에 적는다.)
+  22-5. function deleteFeed(id)에서는 새로운 FormData를 가지고(파일을 받아오는 것이기 때문에 FormData를 받아옴.) id를 가져와 DELETE를 진행한다.
+  22-6. DELETE를 진행하기 위해 content/views.py에서 FeedControl class를 작성한다.(FeedControl에서는 id에 관련된 모든 테이블을 가져와 delete 시킨다.)
+  22-7. views.py에서 class를 만들었으니 당연히 content/urls.py로 연동시킨다.
+
+23. 내가 쓴 댓글 삭제하기.
+  23-1. 피드 삭제와 똑같은 느낌인데 에러가 뜸.
+
+
+
+O 현재 문제점('내 게시물' 피드 확인하기)
+- 일단 '내 게시물'에서 for구문을 돌려 이미지를 가져오는데 제일 처음에 떠있는 사진에만 피드를 불러올 수 있다.(다른 이미지들은 클릭을 받지 못한다.)
+- '내 게시물'에서 피드를 눌렀을 때, feed.like_count, feed.nickname, reply.nickname, reply.reply_content를 받아오지 못한다.
+- 또한, 좋아요와 북마크를 누르면 기본적으로 데이터베이스에 저장되긴 하지만 새로고침을 눌렀을 경우에는 데이터베이스에서 True를 반환받지 못해 누르지 않는 것으로 나타난다.
+- 내 게시물이 아닌데도 내 게시물로 올라온 경우
+
+
+
+
+
+% 추가하고 싶은 기능(백엔드를 기준으로)
+1. 프로필에 들어가서 내 게시물, 좋아요, 북마크 된 사진을 누르면 모달에 그 피드를 띄우기.
+2. 홈에 올라온 피드에서 피드를 올린 사람을 누르면 그 사람의 프로필로 들어가기.(1번으로 들어간 모달에서도 같은 동작을 실행하고 다른 사람의 프로필로 들어간 경우 그 사람이 올린 피드 목록만 볼 수 있도록)
+3. 사진을 한 장만 올리는 것이 아닌 여러 장을 올릴 수 있도록 만들기.
+4. 팔로우, 팔로잉 만들기.(당연히 팔로우 기능을 추가.)
+5. 검색기능 추가.
+6. 친구 추천 알고리즘?
+7. 관리자 페이지 만들기.(내가 올린 사진이나 댓글이 아니더라도 모두 삭제시킬 수 있는 권한을 가진 관리자로 로그인하여 인스타그램을 관리)
+8. 내가 올린 피드, 댓글 등 삭제 혹은 수정 기능 만들기.
+
+** 문제점 발결 - 다른 사람이 올린 피드에 댓글을 달면 피드의 주인이 댓글을 단 사람으로 변하는 것을 확인. 하지만 개인 프로필에 들어가서 확인해보면 원래 피드를 올린 주인에게만 '내 게시물'에 추가되어 있는 것을 확인.
+** 만약, 가입자가 삭제된다면 그 사람이 올린 글(피드, 좋아요, 댓글, 북마크)로 인해 오류 발생.
+
+
+
+
+
+* 유튜브 영상(https://www.youtube.com/watch?v=M8UPyeF5DfM&t=29006s)에서 10:04:51 근방에 클릭을 하여 정보를 얻을 수 있는 방식에 대한 설명이 나와있다.
+  script.js 파일의 424번째 줄에 대한 설명이다.(하지만 js 파일에서 {{ user.name }}과 같은 방식의 사용법을 몰라 main.html로 옮겼다./280번째 줄)
