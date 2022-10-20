@@ -1,4 +1,4 @@
-# �ν�Ÿ�׷� Ŭ�� �ڵ�
+# 인스타그램 클론 코딩
 
 <img width="80%" src="https://user-images.githubusercontent.com/100823895/196886538-443c2c7a-7306-4e9d-90ce-82c854f6b4ff.png"/>
 
